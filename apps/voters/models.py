@@ -70,10 +70,10 @@ class Voter(models.Model):
                                  db_index=True, verbose_name="Category")
     
     # Core voter fields (indexed for fast search)
-    serial = models.CharField(max_length=50, blank=True, null=True, verbose_name="Serial")
+    serial = models.CharField(max_length=100, blank=True, null=True, verbose_name="Serial")
     name = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                            verbose_name="Name")
-    voter_no = models.CharField(max_length=50, blank=True, null=True, db_index=True,
+    voter_no = models.CharField(max_length=100, blank=True, null=True, db_index=True,
                                verbose_name="Voter No")
     father = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                              verbose_name="Father Name")
@@ -81,7 +81,7 @@ class Voter(models.Model):
                              verbose_name="Mother Name")
     profession = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                                  verbose_name="Profession")
-    dob = models.CharField(max_length=50, blank=True, null=True, verbose_name="Date of Birth")
+    dob = models.CharField(max_length=100, blank=True, null=True, verbose_name="Date of Birth")
     address = models.TextField(blank=True, null=True, verbose_name="Address")
     
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='unknown',
