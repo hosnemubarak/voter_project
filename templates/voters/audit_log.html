@@ -1,0 +1,197 @@
+{% extends 'voters/base_voters.html' %}
+{% load humanize %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Audit Log</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'voters:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Audit Log</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Panel -->
+<div class="filter-panel mb-4">
+    <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#auditFilters">
+        <h6><i class="las la-filter me-2"></i>Filters</h6>
+        <i class="las la-chevron-down"></i>
+    </div>
+    <div class="collapse show" id="auditFilters">
+        <div class="p-3">
+            <form method="get" action="{% url 'voters:audit_log' %}">
+                <div class="row g-3">
+                    <!-- Search -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Search Voter</label>
+                        <input type="text" class="form-control" name="search" value="{{ search_query }}" 
+                               placeholder="Name or Voter No...">
+                    </div>
+                    
+                    <!-- User Filter -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Changed By</label>
+                        <select class="form-select" name="user">
+                            <option value="">All Users</option>
+                            {% for u in users %}
+                            <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"i" %}selected{% endif %}>
+                                {{ u.username }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Status Filter -->
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label">New Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">All Statuses</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Date From -->
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label">Date From</label>
+                        <input type="date" class="form-control" name="date_from" value="{{ date_from }}">
+                    </div>
+                    
+                    <!-- Date To -->
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label">Date To</label>
+                        <input type="date" class="form-control" name="date_to" value="{{ date_to }}">
+                    </div>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary btn-modern">
+                        <i class="las la-search me-1"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'voters:audit_log' %}" class="btn btn-outline-secondary btn-modern">
+                        <i class="las la-redo-alt me-1"></i> Clear
+                    </a>
+                    <span class="text-muted small align-self-center ms-auto">
+                        <i class="las la-info-circle me-1"></i>
+                        Found <strong>{{ page_obj.paginator.count|intcomma }}</strong> records
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Audit Table -->
+<div class="card-modern">
+    <div class="card-body p-0">
+        {% if audits %}
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Voter</th>
+                        <th>Previous Status</th>
+                        <th>New Status</th>
+                        <th>Changed By</th>
+                        <th>Remarks</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for audit in audits %}
+                    <tr>
+                        <td>
+                            <span class="text-dark">{{ audit.changed_at|date:"M d, Y" }}</span><br>
+                            <small class="text-muted">{{ audit.changed_at|time:"h:i A" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'voters:voter_detail' audit.voter.pk %}" class="text-dark fw-semibold">
+                                {{ audit.voter.name|default:"Unknown" }}
+                            </a><br>
+                            <small class="text-muted">{{ audit.voter.voter_no|default:"-" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge-status {{ audit.old_status }}">
+                                {{ audit.get_old_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-status {{ audit.new_status }}">
+                                {{ audit.get_new_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="las la-user me-1"></i>{{ audit.changed_by.username|default:"System" }}
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ audit.remarks|default:"-"|truncatechars:50 }}</span>
+                        </td>
+                        <td>
+                            <code class="small">{{ audit.ip_address|default:"-" }}</code>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-center py-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="las la-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="las la-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="las la-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_user %}&user={{ selected_user }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="las la-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state py-5">
+            <div class="empty-icon">
+                <i class="las la-clipboard-list"></i>
+            </div>
+            <h5>No Audit Records</h5>
+            <p class="text-muted">No status changes have been recorded yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

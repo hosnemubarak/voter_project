@@ -1,0 +1,586 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Voter Management" }} | {{ APP_NAME }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Stats Cards */
+.stats-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.stats-card-clickable {
+    cursor: pointer;
+}
+.stats-card-clickable:hover {
+    border: 2px solid #3b82f6;
+}
+.stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+.stats-icon.primary { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.stats-icon.success { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.stats-icon.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.stats-icon.info { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; }
+.stats-icon.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.stats-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+.stats-label {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* Modern Card */
+.card-modern {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+.card-modern .card-header {
+    background: transparent;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 20px;
+}
+.card-modern .card-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+.card-modern .card-body {
+    padding: 20px;
+}
+
+/* Filter Panel */
+.filter-panel {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+.filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background-color 0.2s;
+}
+.filter-header:hover {
+    background-color: #f8fafc;
+}
+.filter-header h6 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+.filter-panel .collapse {
+    padding: 0 20px;
+}
+.filter-panel .collapse.show {
+    padding-bottom: 20px;
+}
+.filter-actions {
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Search Box Modern */
+.search-box-modern {
+    position: relative;
+}
+.search-box-modern .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 18px;
+}
+.search-box-modern .form-control {
+    padding-left: 42px;
+    height: 46px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+.search-box-modern .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Modern Table */
+.table-responsive-modern {
+    overflow-x: auto;
+}
+.table-modern {
+    width: 100%;
+    margin-bottom: 0;
+}
+.table-modern thead {
+    background: #f8fafc;
+}
+.table-modern th {
+    font-weight: 600;
+    font-size: 13px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.table-modern td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    color: #334155;
+    vertical-align: middle;
+}
+.table-modern tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Gender Badges */
+.badge-gender {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.badge-gender.male {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+.badge-gender.female {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+}
+.badge-gender.unknown {
+    background: rgba(100, 116, 139, 0.15);
+    color: #64748b;
+}
+
+/* Button Icon */
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+.btn-soft-primary {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: none;
+}
+.btn-soft-primary:hover {
+    background: rgba(59, 130, 246, 0.25);
+    color: #2563eb;
+}
+.btn-soft-secondary {
+    background: rgba(100, 116, 139, 0.15);
+    color: #64748b;
+    border: none;
+}
+.btn-soft-secondary:hover {
+    background: rgba(100, 116, 139, 0.25);
+    color: #475569;
+}
+
+/* Modern Button */
+.btn-modern {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+/* Quick Action Buttons */
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.quick-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.quick-action-btn i {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+.quick-action-btn span {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+/* Pagination Modern */
+.pagination-modern {
+    gap: 4px;
+}
+.pagination-modern .page-link {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    color: #64748b;
+    background: transparent;
+}
+.pagination-modern .page-link:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+}
+.pagination-modern .page-item.active .page-link {
+    background: #3b82f6;
+    color: #fff;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+.empty-icon {
+    font-size: 64px;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+}
+.empty-state h5 {
+    color: #64748b;
+    margin-bottom: 8px;
+}
+.empty-state p {
+    color: #94a3b8;
+    margin-bottom: 20px;
+}
+
+/* Category Tree */
+.category-tree .category-item-wrapper {
+    margin-bottom: 4px;
+}
+.category-tree .category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.category-tree .category-item:hover {
+    background: #e2e8f0;
+}
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+.category-icon.has-excel {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+.category-icon.no-excel {
+    background: rgba(100, 116, 139, 0.15);
+    color: #64748b;
+}
+.category-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+}
+.category-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+.category-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Voter Data Cell */
+.voter-data-cell {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Voter Info Modal */
+.voter-info-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.voter-info-item:last-child {
+    border-bottom: none;
+}
+.voter-info-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.voter-info-value {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* Search Results Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 10000;
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+}
+.search-results-dropdown.show {
+    display: block;
+}
+.search-results-header {
+    padding: 10px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+}
+.search-result-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+.search-result-item:hover,
+.search-result-item.selected {
+    background: #e0f2fe;
+}
+.search-result-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e293b;
+}
+.search-result-name.male { color: #3b82f6; }
+.search-result-name.female { color: #ec4899; }
+.search-result-voter-no {
+    font-size: 12px;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #64748b;
+    font-family: monospace;
+}
+.search-result-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 16px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+.detail-label {
+    color: #94a3b8;
+}
+.detail-value {
+    color: #64748b;
+}
+.search-results-footer {
+    padding: 10px 16px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* Search Highlight */
+.search-results-dropdown mark {
+    background: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* Dropdown Loading */
+.dropdown-loading {
+    position: absolute;
+    right: 35px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.form-select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* Auto-suggestion Styles */
+.autosuggest-wrapper {
+    position: relative;
+}
+.autosuggest-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 1050;
+    display: none;
+}
+.autosuggest-dropdown.show {
+    display: block;
+}
+.autosuggest-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s;
+}
+.autosuggest-item:last-child {
+    border-bottom: none;
+}
+.autosuggest-item:hover,
+.autosuggest-item.active {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+.autosuggest-item mark {
+    background: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+.autosuggest-loading {
+    padding: 12px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}
+.autosuggest-loading .spinner-border {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+.autosuggest-empty {
+    padding: 12px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Status Badges */
+.badge-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.badge-status.present {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+}
+.badge-status.absent {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+}
+.badge-status.dead {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+}
+
+/* Status Update Form */
+.status-update-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.status-update-form select {
+    min-width: 120px;
+}
+
+/* Inline status select styling */
+.status-inline-form {
+    margin: 0;
+}
+.status-select {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.status-select.present {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: #22c55e;
+    color: #16a34a;
+}
+.status-select.absent {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    color: #d97706;
+}
+.status-select.dead {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #dc2626;
+}
+</style>
+{% endblock %}

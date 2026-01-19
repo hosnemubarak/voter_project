@@ -1,0 +1,217 @@
+{% extends 'voters/base_voters.html' %}
+{% load humanize %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Voter Details</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'voters:voter_list' %}">Voters</a></li>
+                    <li class="breadcrumb-item active">{{ voter.name|default:"Details" }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Voter Info Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="avatar-xl mx-auto mb-3">
+                    <span class="avatar-title rounded-circle bg-{% if voter.gender == 'male' %}info{% elif voter.gender == 'female' %}danger{% else %}secondary{% endif %}-subtle fs-1" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="las la-{% if voter.gender == 'male' %}male{% elif voter.gender == 'female' %}female{% else %}user{% endif %} text-{% if voter.gender == 'male' %}info{% elif voter.gender == 'female' %}danger{% else %}secondary{% endif %}" style="font-size: 40px;"></i>
+                    </span>
+                </div>
+                <h4 class="mb-1">{{ voter.name|default:"Unknown" }}</h4>
+                <p class="text-muted mb-3">
+                    {% if voter.gender == 'male' %}
+                    <span class="badge-gender male">Male</span>
+                    {% elif voter.gender == 'female' %}
+                    <span class="badge-gender female">Female</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Unknown</span>
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'voters:voter_list' %}" class="btn btn-soft-primary">
+                        <i class="las la-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-info-circle me-2"></i>Basic Info</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Voter No:</strong>
+                        <code>{{ voter.voter_no|default:"-" }}</code>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Serial:</strong>
+                        <span>{{ voter.serial|default:"-" }}</span>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Gender:</strong>
+                        <span>{{ voter.gender|title }}</span>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between align-items-center">
+                        <strong>Status:</strong>
+                        <span class="badge-status {{ voter.status }}">{{ voter.get_status_display }}</span>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Date of Birth:</strong>
+                        <span>{{ voter.dob|default:"-" }}</span>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Category:</strong>
+                        <a href="{% url 'voters:category_detail' voter.category.pk %}">{{ voter.category.name }}</a>
+                    </li>
+                    <li class="py-2 d-flex justify-content-between">
+                        <strong>Area Code:</strong>
+                        <code>{{ voter.category.code|default:"-" }}</code>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Status Update Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-edit me-2"></i>Update Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'voters:update_voter_status' voter.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">New Status</label>
+                        <select class="form-select" name="status" required>
+                            <option value="present" {% if voter.status == 'present' %}selected{% endif %}>Present</option>
+                            <option value="absent" {% if voter.status == 'absent' %}selected{% endif %}>Absent</option>
+                            <option value="dead" {% if voter.status == 'dead' %}selected{% endif %}>Dead</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Remarks (Optional)</label>
+                        <textarea class="form-control" name="remarks" rows="2" placeholder="Add a note..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="las la-save me-1"></i> Update Status
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Data Card -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-id-card me-2"></i>Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <tbody>
+                            <tr>
+                                <th style="width: 30%;">Name</th>
+                                <td>{{ voter.name|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Father's Name</th>
+                                <td>{{ voter.father|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Mother's Name</th>
+                                <td>{{ voter.mother|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Profession</th>
+                                <td>{{ voter.profession|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Address</th>
+                                <td>{{ voter.address|default:"-" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extra Data -->
+        {% if voter.extra_data %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-database me-2"></i>Additional Data</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Field</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in voter.extra_data.items %}
+                            <tr>
+                                <td><strong>{{ key }}</strong></td>
+                                <td>{{ value|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">No additional data</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Category Path -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-folder-open me-2"></i>Category Hierarchy</h5>
+            </div>
+            <div class="card-body">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        {% for ancestor in voter.category.get_ancestors %}
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'voters:category_detail' ancestor.pk %}">{{ ancestor.name }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="breadcrumb-item active">{{ voter.category.name }}</li>
+                    </ol>
+                </nav>
+                <p class="text-muted mt-2 mb-0">
+                    <small><strong>Full Path:</strong> {{ voter.category.full_path }}</small>
+                </p>
+            </div>
+        </div>
+
+        <!-- Source Info -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-file-excel me-2"></i>Source Information</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0"><strong>Source File:</strong> <code>{{ voter.source_file }}</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

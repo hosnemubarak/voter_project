@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Voter Management System" }} - Bangladesh Voter List{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .voter-table th {
+        white-space: nowrap;
+    }
+    .category-tree .category-item {
+        padding: 8px 12px;
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+    }
+    .category-tree .category-item:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        border-left-color: var(--bs-primary);
+    }
+    .filter-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .badge-male {
+        background-color: #3b82f6;
+    }
+    .badge-female {
+        background-color: #ec4899;
+    }
+    .voter-data-cell {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .breadcrumb-voters {
+        background: transparent;
+        padding: 0;
+    }
+    .search-highlight {
+        background-color: #fef3c7;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}

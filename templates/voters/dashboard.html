@@ -1,0 +1,228 @@
+{% extends 'voters/base_voters.html' %}
+{% load humanize %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Voter Dashboard</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Voter Dashboard</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'voters:voter_list' %}" class="text-decoration-none">
+            <div class="stats-card stats-card-clickable">
+                <div class="stats-icon primary">
+                    <i class="las la-users"></i>
+                </div>
+                <div class="stats-value">{{ stats.total_voters|intcomma|default:0 }}</div>
+                <div class="stats-label">Total Voters</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'voters:voter_list' %}?gender=male" class="text-decoration-none">
+            <div class="stats-card stats-card-clickable">
+                <div class="stats-icon info">
+                    <i class="las la-male"></i>
+                </div>
+                <div class="stats-value">{{ stats.male_count|intcomma|default:0 }}</div>
+                <div class="stats-label">Male Voters</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'voters:voter_list' %}?gender=female" class="text-decoration-none">
+            <div class="stats-card stats-card-clickable">
+                <div class="stats-icon danger">
+                    <i class="las la-female"></i>
+                </div>
+                <div class="stats-value">{{ stats.female_count|intcomma|default:0 }}</div>
+                <div class="stats-label">Female Voters</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'voters:category_list' %}" class="text-decoration-none">
+            <div class="stats-card stats-card-clickable">
+                <div class="stats-icon success">
+                    <i class="las la-folder-open"></i>
+                </div>
+                <div class="stats-value">{{ stats.total_categories|intcomma|default:0 }}</div>
+                <div class="stats-label">Categories</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Quick Search -->
+<div class="card-modern mb-4">
+    <div class="card-header">
+        <h5><i class="las la-search me-2"></i>Quick Search</h5>
+    </div>
+    <div class="card-body">
+        <form action="{% url 'voters:voter_list' %}" method="get">
+            <div class="search-box-modern">
+                <i class="las la-search search-icon"></i>
+                <input type="text" class="form-control" name="search" 
+                       placeholder="Search by name, voter no, father, mother, or address...">
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <button type="submit" class="btn btn-primary btn-modern">
+                    <i class="las la-search me-1"></i> Search
+                </button>
+                <a href="{% url 'voters:voter_list' %}?gender=male" class="btn btn-outline-info btn-modern">
+                    <i class="las la-male me-1"></i> Male Only
+                </a>
+                <a href="{% url 'voters:voter_list' %}?gender=female" class="btn btn-outline-danger btn-modern">
+                    <i class="las la-female me-1"></i> Female Only
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <h6 class="text-muted mb-3"><i class="las la-bolt me-2"></i>Quick Actions</h6>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'voters:voter_list' %}" class="quick-action-btn w-100">
+            <i class="las la-list text-primary"></i>
+            <span>Voter List</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'voters:category_list' %}" class="quick-action-btn w-100">
+            <i class="las la-folder-open text-success"></i>
+            <span>Categories</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'voters:voter_list' %}?search=" class="quick-action-btn w-100">
+            <i class="las la-search text-info"></i>
+            <span>Advanced Search</span>
+        </a>
+    </div>
+    {% if user.is_superuser %}
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'admin:index' %}" class="quick-action-btn w-100">
+            <i class="las la-cog text-secondary"></i>
+            <span>Admin Panel</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'admin:voters_voter_changelist' %}" class="quick-action-btn w-100">
+            <i class="las la-edit text-warning"></i>
+            <span>Manage Voters</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'admin:voters_category_changelist' %}" class="quick-action-btn w-100">
+            <i class="las la-sitemap text-danger"></i>
+            <span>Manage Areas</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Top Categories -->
+<div class="card-modern mb-4">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h5 class="mb-0">
+            <i class="las la-chart-bar me-2"></i>Top Categories by Voters
+        </h5>
+        <a href="{% url 'voters:category_list' %}" class="btn btn-sm btn-outline-primary">
+            View All <i class="las la-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if top_categories %}
+        <div class="table-responsive-modern">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Category Name</th>
+                        <th>Code</th>
+                        <th>Voters</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in top_categories %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <strong class="text-dark">{{ category.name }}</strong>
+                            <br><small class="text-muted">{{ category.full_path }}</small>
+                        </td>
+                        <td><code class="bg-light px-2 py-1 rounded">{{ category.code|default:"-" }}</code></td>
+                        <td><span class="badge bg-primary-subtle text-primary">{{ category.voter_count|intcomma }}</span></td>
+                        <td>
+                            <a href="{% url 'voters:category_detail' category.pk %}" class="btn btn-icon btn-soft-primary">
+                                <i class="las la-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="las la-folder-open"></i>
+            </div>
+            <h5>No data yet</h5>
+            <p>Run the import command to load voter data.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_staff %}
+<!-- Import Instructions (Admin Only) -->
+<div class="card-modern">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#importInstructions" style="cursor: pointer;">
+        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+            <span><i class="las la-terminal me-2"></i>Import Instructions</span>
+            <i class="las la-chevron-down"></i>
+        </h5>
+    </div>
+    <div class="collapse" id="importInstructions">
+        <div class="card-body">
+            <p>To import voter data from Excel files, run the following command:</p>
+            <div class="bg-dark text-white p-3 rounded mb-3" style="overflow-x: auto;">
+                <code style="white-space: nowrap;">python manage.py import_voters --base-path "path/to/excel/files"</code>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded">
+                        <strong><i class="las la-trash me-1"></i> Clear & Reimport:</strong>
+                        <code class="d-block mt-2">python manage.py import_voters --clear</code>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded">
+                        <strong><i class="las la-eye me-1"></i> Preview Only:</strong>
+                        <code class="d-block mt-2">python manage.py import_voters --dry-run</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

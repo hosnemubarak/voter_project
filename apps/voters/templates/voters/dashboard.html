@@ -1,0 +1,236 @@
+{% extends 'voters/base_voters.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">বাংলাদেশ ভোটার তালিকা / Bangladesh Voter List</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon primary">
+                <i class="bx bx-group"></i>
+            </div>
+            <div class="stats-value">{{ stats.total_voters|default:0 }}</div>
+            <div class="stats-label">মোট ভোটার / Total Voters</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon info">
+                <i class="bx bx-male"></i>
+            </div>
+            <div class="stats-value">{{ stats.male_count|default:0 }}</div>
+            <div class="stats-label">পুরুষ / Male</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon danger">
+                <i class="bx bx-female"></i>
+            </div>
+            <div class="stats-value">{{ stats.female_count|default:0 }}</div>
+            <div class="stats-label">মহিলা / Female</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon success">
+                <i class="bx bx-folder"></i>
+            </div>
+            <div class="stats-value">{{ stats.total_categories|default:0 }}</div>
+            <div class="stats-label">এলাকা / Categories</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Search -->
+<div class="card-modern mb-4">
+    <div class="card-header">
+        <h5><i class="bx bx-search me-2"></i>দ্রুত অনুসন্ধান / Quick Search</h5>
+    </div>
+    <div class="card-body">
+        <form action="{% url 'voters:voter_list' %}" method="get">
+            <div class="search-box-modern">
+                <i class="bx bx-search search-icon"></i>
+                <input type="text" class="form-control" name="search" 
+                       placeholder="নাম, ভোটার নম্বর, বা অন্যান্য তথ্য দিয়ে অনুসন্ধান করুন...">
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <button type="submit" class="btn btn-primary btn-modern">
+                    <i class="bx bx-search me-1"></i> Search
+                </button>
+                <a href="{% url 'voters:voter_list' %}?gender=male" class="btn btn-outline-info btn-modern">
+                    <i class="bx bx-male me-1"></i> পুরুষ / Male Only
+                </a>
+                <a href="{% url 'voters:voter_list' %}?gender=female" class="btn btn-outline-danger btn-modern">
+                    <i class="bx bx-female me-1"></i> মহিলা / Female Only
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <h6 class="text-muted mb-3"><i class="bx bx-rocket me-2"></i>Quick Actions</h6>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'voters:voter_list' %}" class="quick-action-btn w-100">
+            <i class="bx bx-list-ul text-primary"></i>
+            <span>Voter List</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'voters:category_list' %}" class="quick-action-btn w-100">
+            <i class="bx bx-folder-open text-success"></i>
+            <span>Categories</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'voters:voter_list' %}?search=" class="quick-action-btn w-100">
+            <i class="bx bx-search text-info"></i>
+            <span>Search</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'admin:index' %}" class="quick-action-btn w-100">
+            <i class="bx bx-cog text-secondary"></i>
+            <span>Admin</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'admin:voters_voter_changelist' %}" class="quick-action-btn w-100">
+            <i class="bx bx-edit text-warning"></i>
+            <span>Edit Data</span>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="{% url 'admin:voters_category_changelist' %}" class="quick-action-btn w-100">
+            <i class="bx bx-sitemap text-danger"></i>
+            <span>Manage Areas</span>
+        </a>
+    </div>
+</div>
+
+<!-- Top Categories -->
+<div class="card-modern mb-4">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h5 class="mb-0">
+            <i class="bx bx-bar-chart-alt-2 me-2"></i>শীর্ষ এলাকা / Top Categories
+        </h5>
+        <a href="{% url 'voters:category_list' %}" class="btn btn-sm btn-outline-primary">
+            View All <i class="bx bx-chevron-right"></i>
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if top_categories %}
+        <!-- Desktop View -->
+        <div class="table-responsive-modern d-none d-md-block">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Category Name</th>
+                        <th>Code</th>
+                        <th>Voters</th>
+                        <th>View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in top_categories %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <strong class="text-dark">{{ category.name }}</strong>
+                            <br><small class="text-muted">{{ category.full_path }}</small>
+                        </td>
+                        <td><code class="bg-light px-2 py-1 rounded">{{ category.code|default:"-" }}</code></td>
+                        <td><span class="badge bg-primary">{{ category.voter_count }}</span></td>
+                        <td>
+                            <a href="{% url 'voters:category_detail' category.pk %}" class="btn btn-icon btn-soft-primary">
+                                <i class="bx bx-show"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Mobile View -->
+        <div class="d-md-none p-3">
+            {% for category in top_categories %}
+            <div class="card mb-2 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ category.name }}</h6>
+                            <small class="text-muted">{{ category.full_path }}</small>
+                        </div>
+                        <span class="badge bg-primary">{{ category.voter_count }}</span>
+                    </div>
+                    <a href="{% url 'voters:category_detail' category.pk %}" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                        <i class="bx bx-show me-1"></i> View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bx bx-folder-open"></i>
+            </div>
+            <h5>No data yet</h5>
+            <p>Run the import command to load voter data.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Import Instructions (Collapsible) -->
+<div class="card-modern">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#importInstructions" style="cursor: pointer;">
+        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+            <span><i class="bx bx-terminal me-2"></i>Import Instructions</span>
+            <i class="bx bx-chevron-down"></i>
+        </h5>
+    </div>
+    <div class="collapse" id="importInstructions">
+        <div class="card-body">
+            <p>To import voter data from Excel files, run the following command:</p>
+            <div class="bg-dark text-white p-3 rounded mb-3" style="overflow-x: auto;">
+                <code style="white-space: nowrap;">python manage.py import_voters --base-path "D:\personal\ui_project_election_data\election_votar_data"</code>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded">
+                        <strong><i class="bx bx-trash me-1"></i> Clear & Reimport:</strong>
+                        <code class="d-block mt-2">python manage.py import_voters --clear</code>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded">
+                        <strong><i class="bx bx-show me-1"></i> Preview Only:</strong>
+                        <code class="d-block mt-2">python manage.py import_voters --dry-run</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

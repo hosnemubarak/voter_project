@@ -1,0 +1,198 @@
+{% extends 'voters/base_voters.html' %}
+{% load humanize %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">{{ category.name }}</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'voters:category_list' %}">Categories</a></li>
+                    <li class="breadcrumb-item active">{{ category.name }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Info Card -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-folder-open me-2"></i>Category Details</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Name:</strong>
+                        <span>{{ category.name }}</span>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Code:</strong>
+                        <code>{{ category.code|default:"-" }}</code>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Level:</strong>
+                        <span class="badge bg-primary-subtle text-primary">Level {{ category.level }}</span>
+                    </li>
+                    <li class="py-2 border-bottom d-flex justify-content-between">
+                        <strong>Has Data:</strong>
+                        {% if category.has_excel %}
+                        <span class="badge bg-success-subtle text-success">Yes</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary">No</span>
+                        {% endif %}
+                    </li>
+                    <li class="py-2 d-flex justify-content-between">
+                        <strong>Subcategories:</strong>
+                        <span>{{ category.children.count }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="las la-sitemap me-2"></i>Hierarchy Path</h5>
+            </div>
+            <div class="card-body">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        {% for ancestor in category.get_ancestors %}
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'voters:category_detail' ancestor.pk %}">{{ ancestor.name }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="breadcrumb-item active">{{ category.name }}</li>
+                    </ol>
+                </nav>
+                <p class="text-muted mb-3">
+                    <strong>Full Path:</strong> {{ category.full_path }}
+                </p>
+                
+                <!-- Subcategories -->
+                {% if category.children.exists %}
+                <h6 class="mb-2">Subcategories:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for child in category.children.all %}
+                    <a href="{% url 'voters:category_detail' child.pk %}" class="btn btn-sm btn-outline-primary">
+                        {{ child.name }}
+                        {% if child.has_excel %}<i class="las la-check-circle text-success ms-1"></i>{% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Voters Table -->
+<div class="card-modern">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h5 class="mb-0">
+            <i class="las la-users me-2"></i>Voters in this Category
+            <span class="badge bg-primary-subtle text-primary ms-2">{{ page_obj.paginator.count|intcomma }} records</span>
+        </h5>
+        <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    </div>
+    <div class="card-body p-0">
+        {% if voters %}
+        <div class="table-responsive-modern">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Voter No</th>
+                        <th>Gender</th>
+                        <th>Father</th>
+                        <th>Mother</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voter in voters %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td><strong class="text-dark">{{ voter.name|default:"-" }}</strong></td>
+                        <td><code class="bg-light px-2 py-1 rounded">{{ voter.voter_no|default:"-" }}</code></td>
+                        <td>
+                            {% if voter.gender == 'male' %}
+                            <span class="badge-gender male">Male</span>
+                            {% elif voter.gender == 'female' %}
+                            <span class="badge-gender female">Female</span>
+                            {% else %}
+                            <span class="badge-gender unknown">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="voter-data-cell">{{ voter.father|default:"-" }}</td>
+                        <td class="voter-data-cell">{{ voter.mother|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'voters:voter_detail' voter.pk %}" class="btn btn-icon btn-soft-primary">
+                                <i class="las la-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="p-3 border-top">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-modern justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" title="First">
+                            <i class="las la-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" title="Previous">
+                            <i class="las la-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" title="Next">
+                            <i class="las la-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" title="Last">
+                            <i class="las la-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="las la-users"></i>
+            </div>
+            <h5>No voters in this category</h5>
+            <p>This category doesn't have any voter data yet.</p>
+            <a href="{% url 'voters:category_list' %}" class="btn btn-primary btn-modern">
+                <i class="las la-arrow-left me-1"></i> Back to Categories
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

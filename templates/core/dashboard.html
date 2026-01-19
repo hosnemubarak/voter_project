@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard | {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Dashboard</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Welcome Card -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="las la-vote-yea display-1 text-primary"></i>
+                    </div>
+                    <h3 class="mb-3">Welcome to {{ APP_NAME }}</h3>
+                    <p class="text-muted mb-4">
+                        Hello, <strong>{{ user.get_full_name|default:user.username }}</strong>! 
+                        You are successfully logged in to the Voter Management System.
+                    </p>
+                    <p class="text-muted">
+                        This is your dashboard. Voter-related features and functionality will be added here as the system grows.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Info Card -->
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">User Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0" scope="row">Username:</th>
+                                <td class="text-muted">{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Full Name:</th>
+                                <td class="text-muted">{{ user.get_full_name|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Email:</th>
+                                <td class="text-muted">{{ user.email|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Status:</th>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0" scope="row">Role:</th>
+                                <td>
+                                    {% if user.is_superuser %}
+                                    <span class="badge bg-danger-subtle text-danger">Superuser</span>
+                                    {% elif user.is_staff %}
+                                    <span class="badge bg-warning-subtle text-warning">Staff</span>
+                                    {% else %}
+                                    <span class="badge bg-primary-subtle text-primary">User</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">System Status</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="las la-check-circle text-success fs-24"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">Authentication System</h6>
+                        <p class="text-muted mb-0 fs-13">Fully operational</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="las la-check-circle text-success fs-24"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">Dashboard</h6>
+                        <p class="text-muted mb-0 fs-13">Ready for customization</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="las la-clock text-warning fs-24"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">Voter Features</h6>
+                        <p class="text-muted mb-0 fs-13">Pending implementation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

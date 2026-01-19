@@ -1,0 +1,963 @@
+{% extends 'voters/base_voters.html' %}
+{% load humanize %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Voter List</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'voters:dashboard' %}">Voters</a></li>
+                    <li class="breadcrumb-item active">List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon primary">
+                <i class="las la-users"></i>
+            </div>
+            <div class="stats-value">{{ stats.total_voters|intcomma|default:0 }}</div>
+            <div class="stats-label">Total Voters</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon info">
+                <i class="las la-male"></i>
+            </div>
+            <div class="stats-value">{{ stats.male_count|intcomma|default:0 }}</div>
+            <div class="stats-label">Male</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon danger">
+                <i class="las la-female"></i>
+            </div>
+            <div class="stats-value">{{ stats.female_count|intcomma|default:0 }}</div>
+            <div class="stats-label">Female</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stats-card">
+            <div class="stats-icon success">
+                <i class="las la-folder-open"></i>
+            </div>
+            <div class="stats-value">{{ stats.total_categories|intcomma|default:0 }}</div>
+            <div class="stats-label">Categories</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Search Box -->
+<div class="card-modern mb-4" style="overflow: visible;">
+    <div class="card-body" style="overflow: visible;">
+        <div class="search-container position-relative" style="z-index: 10000;">
+            <form method="get" action="{% url 'voters:voter_list' %}" id="mainSearchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="las la-search text-primary"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control form-control-lg border-start-0" 
+                           name="search" 
+                           id="globalSearchInput"
+                           value="{{ search_query }}"
+                           placeholder="Search voter by name, father, mother, voter no..."
+                           autocomplete="off">
+                    <button type="button" class="btn btn-light border d-none" id="clearSearchBtn">
+                        <i class="las la-times"></i>
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="las la-search me-1"></i> Search
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Autocomplete Dropdown -->
+            <div class="search-results-dropdown" id="autocompleteDropdown">
+                <div class="search-results-loading text-center py-4" id="autocompleteLoading" style="display: none;">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="ms-2 text-muted">Searching...</span>
+                </div>
+                <div class="search-results-table" id="autocompleteResults"></div>
+                <div class="search-no-results text-center py-4 text-muted" id="autocompleteNoResults" style="display: none;">
+                    <i class="las la-search fs-1 mb-2 d-block text-secondary"></i>
+                    <p class="mb-0">No voters found matching your search</p>
+                </div>
+                <div class="search-results-footer" id="autocompleteFooter" style="display: none;">
+                    <small><i class="las la-info-circle me-1"></i> Showing top results. Press Enter for all results.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Filters -->
+<div class="filter-panel mb-4">
+    <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false">
+        <h6><i class="las la-filter me-2"></i>Advanced Filters</h6>
+        <i class="las la-chevron-down fs-4"></i>
+    </div>
+    <div class="collapse" id="filterCollapse">
+        <form method="get" action="{% url 'voters:voter_list' %}" id="searchForm" class="mt-3">
+            
+            <!-- Category Hierarchy -->
+            <div class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-3 text-primary"><i class="las la-map-marker me-2"></i>Select Area</h6>
+                <div class="row g-3">
+                    <!-- Upazila -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">Upazila</label>
+                        <div class="position-relative">
+                            <select class="form-select" name="upazila" id="upazilaSelect">
+                                <option value="">-- Select Upazila --</option>
+                                {% for upazila in upazilas %}
+                                <option value="{{ upazila.id }}" {% if selected_upazila == upazila.id|stringformat:"i" %}selected{% endif %}>{{ upazila.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="dropdown-loading d-none" id="upazilaLoading">
+                                <span class="spinner-border spinner-border-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Union -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">Union</label>
+                        <div class="position-relative">
+                            <select class="form-select" name="union" id="unionSelect" {% if not selected_upazila %}disabled{% endif %}>
+                                <option value="">-- Select Union --</option>
+                                {% for union in unions %}
+                                <option value="{{ union.id }}" {% if selected_union == union.id|stringformat:"i" %}selected{% endif %}>{{ union.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="dropdown-loading d-none" id="unionLoading">
+                                <span class="spinner-border spinner-border-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Voter Area -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">Voter Area</label>
+                        <div class="position-relative">
+                            <select class="form-select" name="voter_area" id="voterAreaSelect" {% if not selected_union %}disabled{% endif %}>
+                                <option value="">-- Select Area --</option>
+                                {% for area in voter_areas %}
+                                <option value="{{ area.id }}" {% if selected_voter_area == area.id|stringformat:"i" %}selected{% endif %}>{{ area.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="dropdown-loading d-none" id="voterAreaLoading">
+                                <span class="spinner-border spinner-border-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Voter Information Filters -->
+            <div class="mb-4">
+                <h6 class="mb-3 text-primary"><i class="las la-user me-2"></i>Voter Information</h6>
+                <div class="row g-3">
+                    <!-- Name -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Name</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
+                                   value="{{ name_query }}" placeholder="Enter name..." 
+                                   data-field="name" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="nameDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Voter No -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Voter No</label>
+                        <input type="text" class="form-control" name="voter_no" value="{{ voter_no_query }}" placeholder="Enter voter no...">
+                    </div>
+                    
+                    <!-- Father Name -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Father</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
+                                   value="{{ father_query }}" placeholder="Enter father name..." 
+                                   data-field="father" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="fatherDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mother Name -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Mother</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
+                                   value="{{ mother_query }}" placeholder="Enter mother name..." 
+                                   data-field="mother" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="motherDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gender -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Gender</label>
+                        <select class="form-select" name="gender">
+                            <option value="all" {% if selected_gender == 'all' or not selected_gender %}selected{% endif %}>All</option>
+                            <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="all" {% if selected_status == 'all' or not selected_status %}selected{% endif %}>All</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Address -->
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label">Address</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="address" id="addressInput" 
+                                   value="{{ address_query }}" placeholder="Enter address..." 
+                                   data-field="address" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="addressDropdown"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="filter-actions d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary btn-modern" id="searchBtn">
+                    <i class="las la-search me-1"></i> Search
+                </button>
+                <a href="{% url 'voters:voter_list' %}" class="btn btn-outline-secondary btn-modern">
+                    <i class="las la-redo-alt me-1"></i> Clear All
+                </a>
+                <span class="text-muted small align-self-center ms-auto">
+                    <i class="las la-info-circle me-1"></i>
+                    Found <strong>{{ page_obj.paginator.count|intcomma }}</strong> voters
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Voter Table -->
+<div class="card-modern">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h5 class="mb-0">
+            <i class="las la-list me-2"></i>Voters 
+            <span class="badge bg-primary-subtle text-primary ms-2">{{ page_obj.paginator.count|intcomma }} records</span>
+        </h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small d-none d-md-inline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if voters %}
+        <!-- Desktop Table View -->
+        <div class="table-responsive-modern d-none d-md-block">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 50px">#</th>
+                        <th>Name</th>
+                        <th>Voter No</th>
+                        <th>Gender</th>
+                        <th>Status</th>
+                        <th>Father</th>
+                        <th>Mother</th>
+                        <th style="width: 100px">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voter in voters %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td><strong class="text-dark">{{ voter.name|default:"-" }}</strong></td>
+                        <td><code class="bg-light px-2 py-1 rounded">{{ voter.voter_no|default:"-" }}</code></td>
+                        <td>
+                            {% if voter.gender == 'male' %}
+                            <span class="badge-gender male">Male</span>
+                            {% elif voter.gender == 'female' %}
+                            <span class="badge-gender female">Female</span>
+                            {% else %}
+                            <span class="badge-gender unknown">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'voters:update_voter_status' voter.pk %}" class="status-inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <select name="status" class="form-select form-select-sm status-select {{ voter.status }}" 
+                                        onchange="this.form.submit()" style="min-width: 90px;">
+                                    <option value="present" {% if voter.status == 'present' %}selected{% endif %}>Present</option>
+                                    <option value="absent" {% if voter.status == 'absent' %}selected{% endif %}>Absent</option>
+                                    <option value="dead" {% if voter.status == 'dead' %}selected{% endif %}>Dead</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td class="voter-data-cell" title="{{ voter.father|default:'-' }}">{{ voter.father|default:"-" }}</td>
+                        <td class="voter-data-cell" title="{{ voter.mother|default:'-' }}">{{ voter.mother|default:"-" }}</td>
+                        <td>
+                            <button type="button" class="btn btn-icon btn-soft-primary" 
+                                    data-bs-toggle="modal" data-bs-target="#voterModal"
+                                    onclick="showVoterDetail({{ voter.pk }}, '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.status }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.profession|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}', '{{ voter.source_file|default:"-"|escapejs }}')">
+                                <i class="las la-eye fs-5"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Mobile Card View -->
+        <div class="d-md-none p-3">
+            {% for voter in voters %}
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="mb-1 text-dark">{{ voter.name|default:"-" }}</h6>
+                            <code class="small">{{ voter.voter_no|default:"-" }}</code>
+                        </div>
+                        {% if voter.gender == 'male' %}
+                        <span class="badge-gender male">Male</span>
+                        {% elif voter.gender == 'female' %}
+                        <span class="badge-gender female">Female</span>
+                        {% else %}
+                        <span class="badge-gender unknown">N/A</span>
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted mb-2">
+                        <div><strong>Father:</strong> {{ voter.father|default:"-" }}</div>
+                        <div><strong>Mother:</strong> {{ voter.mother|default:"-" }}</div>
+                        <div><strong>Category:</strong> {{ voter.category.name }}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary w-100" 
+                            data-bs-toggle="modal" data-bs-target="#voterModal"
+                            onclick="showVoterDetail({{ voter.pk }}, '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.profession|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}', '{{ voter.source_file|default:"-"|escapejs }}')">
+                        <i class="las la-eye me-1"></i> View Details
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-3 border-top">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-modern justify-content-center mb-0 flex-wrap">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_gender %}&gender={{ selected_gender }}{% endif %}" title="First">
+                            <i class="las la-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_gender %}&gender={{ selected_gender }}{% endif %}" title="Previous">
+                            <i class="las la-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_gender %}&gender={{ selected_gender }}{% endif %}" title="Next">
+                            <i class="las la-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_gender %}&gender={{ selected_gender }}{% endif %}" title="Last">
+                            <i class="las la-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="las la-search"></i>
+            </div>
+            <h5>No voters found</h5>
+            <p>Try adjusting your search or filter criteria.</p>
+            <a href="{% url 'voters:voter_list' %}" class="btn btn-primary btn-modern">
+                <i class="las la-redo-alt me-1"></i> Clear Filters
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Voter Detail Modal -->
+<div class="modal fade" id="voterModal" tabindex="-1" aria-labelledby="voterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="voterModalLabel">
+                    <i class="las la-user me-2"></i>Voter Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Name</div>
+                            <div class="voter-info-value" id="modal-name">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Voter No</div>
+                            <div class="voter-info-value"><code id="modal-voter-no">-</code></div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Gender</div>
+                            <div class="voter-info-value" id="modal-gender">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Status</div>
+                            <div class="voter-info-value">
+                                <form method="post" id="modal-status-form" class="status-inline-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <select name="status" id="modal-status-select" class="form-select form-select-sm status-select" 
+                                            onchange="this.form.submit()" style="min-width: 100px;">
+                                        <option value="present">Present</option>
+                                        <option value="absent">Absent</option>
+                                        <option value="dead">Dead</option>
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Father</div>
+                            <div class="voter-info-value" id="modal-father">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Mother</div>
+                            <div class="voter-info-value" id="modal-mother">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Profession</div>
+                            <div class="voter-info-value" id="modal-profession">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Date of Birth</div>
+                            <div class="voter-info-value" id="modal-dob">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Address</div>
+                            <div class="voter-info-value" id="modal-address">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Category Path</div>
+                            <div class="voter-info-value" id="modal-category">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">Source File</div>
+                            <div class="voter-info-value" id="modal-source">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="modal-view-full" class="btn btn-outline-primary btn-modern">
+                    <i class="las la-external-link-alt me-1"></i> View Full Page
+                </a>
+                <button type="button" class="btn btn-secondary btn-modern" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Voter Detail Modal
+function showVoterDetail(id, name, voterNo, gender, status, father, mother, profession, dob, address, category, source) {
+    document.getElementById('modal-name').textContent = name;
+    document.getElementById('modal-voter-no').textContent = voterNo;
+    
+    let genderHtml = gender;
+    if (gender === 'male') {
+        genderHtml = '<span class="badge-gender male">Male</span>';
+    } else if (gender === 'female') {
+        genderHtml = '<span class="badge-gender female">Female</span>';
+    }
+    document.getElementById('modal-gender').innerHTML = genderHtml;
+    
+    // Update status form and select
+    const statusForm = document.getElementById('modal-status-form');
+    const statusSelect = document.getElementById('modal-status-select');
+    statusForm.action = '/voters/voters/' + id + '/update-status/';
+    statusSelect.value = status;
+    statusSelect.className = 'form-select form-select-sm status-select ' + status;
+    
+    document.getElementById('modal-father').textContent = father;
+    document.getElementById('modal-mother').textContent = mother;
+    document.getElementById('modal-profession').textContent = profession;
+    document.getElementById('modal-dob').textContent = dob;
+    document.getElementById('modal-address').textContent = address;
+    document.getElementById('modal-category').textContent = category;
+    document.getElementById('modal-source').textContent = source;
+    document.getElementById('modal-view-full').href = '/voters/voters/' + id + '/';
+}
+
+// Dependent Category Dropdowns
+const API_URL = '{% url "voters:api_categories" %}';
+const upazilaSelect = document.getElementById('upazilaSelect');
+const unionSelect = document.getElementById('unionSelect');
+const voterAreaSelect = document.getElementById('voterAreaSelect');
+
+function showLoading(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('d-none');
+}
+
+function hideLoading(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('d-none');
+}
+
+async function fetchCategories(parentId) {
+    try {
+        const response = await fetch(`${API_URL}?parent_id=${parentId}`);
+        const data = await response.json();
+        return data.categories || [];
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+    }
+}
+
+function populateDropdown(selectElement, categories, placeholder) {
+    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = cat.name + (cat.code ? ` (${cat.code})` : '');
+        selectElement.appendChild(option);
+    });
+    selectElement.disabled = categories.length === 0;
+}
+
+function resetDropdowns(...selects) {
+    selects.forEach(select => {
+        select.innerHTML = '<option value="">-- Select --</option>';
+        select.disabled = true;
+    });
+}
+
+upazilaSelect.addEventListener('change', async function() {
+    const upazilaId = this.value;
+    resetDropdowns(unionSelect, voterAreaSelect);
+    if (!upazilaId) return;
+    
+    showLoading('unionLoading');
+    const unions = await fetchCategories(upazilaId);
+    hideLoading('unionLoading');
+    populateDropdown(unionSelect, unions, '-- Select Union --');
+});
+
+unionSelect.addEventListener('change', async function() {
+    const unionId = this.value;
+    resetDropdowns(voterAreaSelect);
+    if (!unionId) return;
+    
+    showLoading('voterAreaLoading');
+    const voterAreas = await fetchCategories(unionId);
+    hideLoading('voterAreaLoading');
+    populateDropdown(voterAreaSelect, voterAreas, '-- Select Voter Area --');
+});
+
+// Autocomplete Search
+const SEARCH_API_URL = '{% url "voters:api_search_voters" %}';
+const searchInput = document.getElementById('globalSearchInput');
+const dropdown = document.getElementById('autocompleteDropdown');
+const resultsContainer = document.getElementById('autocompleteResults');
+const loadingEl = document.getElementById('autocompleteLoading');
+const noResultsEl = document.getElementById('autocompleteNoResults');
+const footerEl = document.getElementById('autocompleteFooter');
+const clearBtn = document.getElementById('clearSearchBtn');
+
+let debounceTimer = null;
+let currentResults = [];
+let selectedIndex = -1;
+
+function debounceSearch(query) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => performSearch(query), 300);
+}
+
+async function performSearch(query) {
+    if (query.length < 2) {
+        hideDropdown();
+        return;
+    }
+    
+    loadingEl.style.display = 'block';
+    dropdown.classList.add('show');
+    noResultsEl.style.display = 'none';
+    resultsContainer.innerHTML = '';
+    
+    try {
+        const response = await fetch(`${SEARCH_API_URL}?q=${encodeURIComponent(query)}&limit=10&mode=autocomplete`);
+        const data = await response.json();
+        
+        loadingEl.style.display = 'none';
+        currentResults = data.voters || [];
+        
+        if (currentResults.length === 0) {
+            noResultsEl.style.display = 'block';
+            footerEl.style.display = 'none';
+        } else {
+            renderResults(currentResults, query);
+            footerEl.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        loadingEl.style.display = 'none';
+        noResultsEl.style.display = 'block';
+    }
+}
+
+function renderResults(voters, query) {
+    resultsContainer.innerHTML = '';
+    selectedIndex = -1;
+    
+    const header = document.createElement('div');
+    header.className = 'search-results-header';
+    header.innerHTML = `<i class="las la-search me-1"></i> ${voters.length} results found`;
+    resultsContainer.appendChild(header);
+    
+    voters.forEach((voter, index) => {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.dataset.index = index;
+        
+        const genderClass = voter.gender === 'male' ? 'male' : voter.gender === 'female' ? 'female' : '';
+        
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="search-result-name ${genderClass}">
+                    <i class="las ${voter.gender === 'male' ? 'la-male' : voter.gender === 'female' ? 'la-female' : 'la-user'} me-1"></i>
+                    ${voter.name_highlighted || escapeHtml(voter.name)}
+                </div>
+                <span class="search-result-voter-no">${voter.voter_no_highlighted || escapeHtml(voter.voter_no)}</span>
+            </div>
+            <div class="search-result-details">
+                <div class="detail-item"><span class="detail-label">Father:</span> <span class="detail-value">${escapeHtml(voter.father) || '-'}</span></div>
+                <div class="detail-item"><span class="detail-label">Mother:</span> <span class="detail-value">${escapeHtml(voter.mother) || '-'}</span></div>
+            </div>
+        `;
+        
+        item.addEventListener('click', () => selectResult(voter));
+        item.addEventListener('mouseenter', () => updateSelection(index));
+        
+        resultsContainer.appendChild(item);
+    });
+}
+
+function selectResult(voter) {
+    window.location.href = `{% url "voters:voter_list" %}${voter.id}/`;
+}
+
+function updateSelection(index) {
+    const items = resultsContainer.querySelectorAll('.search-result-item');
+    items.forEach((item, i) => {
+        item.classList.toggle('selected', i === index);
+    });
+    selectedIndex = index;
+}
+
+searchInput.addEventListener('keydown', function(e) {
+    if (!dropdown.classList.contains('show')) return;
+    
+    const items = resultsContainer.querySelectorAll('.search-result-item');
+    
+    switch(e.key) {
+        case 'ArrowDown':
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateSelection(selectedIndex);
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            updateSelection(selectedIndex);
+            break;
+        case 'Enter':
+            if (selectedIndex >= 0 && currentResults[selectedIndex]) {
+                e.preventDefault();
+                selectResult(currentResults[selectedIndex]);
+            }
+            break;
+        case 'Escape':
+            hideDropdown();
+            break;
+    }
+});
+
+searchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    if (query.length > 0) {
+        clearBtn.classList.remove('d-none');
+    } else {
+        clearBtn.classList.add('d-none');
+    }
+    debounceSearch(query);
+});
+
+searchInput.addEventListener('focus', function() {
+    if (this.value.trim().length >= 2 && currentResults.length > 0) {
+        dropdown.classList.add('show');
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-container')) {
+        hideDropdown();
+    }
+});
+
+clearBtn.addEventListener('click', function() {
+    searchInput.value = '';
+    searchInput.focus();
+    hideDropdown();
+    clearBtn.classList.add('d-none');
+});
+
+function hideDropdown() {
+    dropdown.classList.remove('show');
+    selectedIndex = -1;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+if (searchInput.value.trim()) {
+    clearBtn.classList.remove('d-none');
+}
+
+// ============================================
+// Advanced Search - Auto Suggestion for Name Fields
+// ============================================
+const SUGGESTIONS_API_URL = '{% url "voters:api_search_suggestions" %}';
+
+class AutoSuggest {
+    constructor(inputId, dropdownId) {
+        this.input = document.getElementById(inputId);
+        this.dropdown = document.getElementById(dropdownId);
+        this.field = this.input?.dataset.field || 'name';
+        this.debounceTimer = null;
+        this.selectedIndex = -1;
+        this.suggestions = [];
+        
+        if (this.input && this.dropdown) {
+            this.init();
+        }
+    }
+    
+    init() {
+        // Input event with debouncing
+        this.input.addEventListener('input', () => {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 300);
+        });
+        
+        // Keyboard navigation
+        this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
+        
+        // Focus event
+        this.input.addEventListener('focus', () => {
+            if (this.input.value.trim().length >= 2 && this.suggestions.length > 0) {
+                this.showDropdown();
+            }
+        });
+        
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
+                this.hideDropdown();
+            }
+        });
+    }
+    
+    async fetchSuggestions() {
+        const query = this.input.value.trim();
+        
+        if (query.length < 2) {
+            this.hideDropdown();
+            return;
+        }
+        
+        // Get current category filters
+        const upazila = document.getElementById('upazilaSelect')?.value || '';
+        const union = document.getElementById('unionSelect')?.value || '';
+        const voterArea = document.getElementById('voterAreaSelect')?.value || '';
+        
+        // Show loading
+        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm"></span> Loading...</div>';
+        this.showDropdown();
+        
+        try {
+            const params = new URLSearchParams({
+                q: query,
+                field: this.field,
+                upazila: upazila,
+                union: union,
+                voter_area: voterArea,
+                limit: 10
+            });
+            
+            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`);
+            const data = await response.json();
+            
+            this.suggestions = data.suggestions || [];
+            this.renderSuggestions(query);
+        } catch (error) {
+            console.error('Auto-suggest error:', error);
+            this.dropdown.innerHTML = '<div class="autosuggest-empty">Error loading suggestions</div>';
+        }
+    }
+    
+    renderSuggestions(query) {
+        this.selectedIndex = -1;
+        
+        if (this.suggestions.length === 0) {
+            this.dropdown.innerHTML = '<div class="autosuggest-empty">No suggestions found</div>';
+            return;
+        }
+        
+        const queryLower = query.toLowerCase();
+        this.dropdown.innerHTML = this.suggestions.map((item, index) => {
+            // Highlight matching text
+            const text = item.text;
+            const highlighted = this.highlightMatch(text, queryLower);
+            return `<div class="autosuggest-item" data-index="${index}">${highlighted}</div>`;
+        }).join('');
+        
+        // Add click handlers
+        this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, index) => {
+            item.addEventListener('click', () => this.selectSuggestion(index));
+            item.addEventListener('mouseenter', () => this.updateSelection(index));
+        });
+    }
+    
+    highlightMatch(text, query) {
+        if (!text || !query) return this.escapeHtml(text || '');
+        
+        const escaped = this.escapeHtml(text);
+        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+        return escaped.replace(regex, '<mark>$1</mark>');
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    handleKeydown(e) {
+        if (!this.dropdown.classList.contains('show')) return;
+        
+        const items = this.dropdown.querySelectorAll('.autosuggest-item');
+        
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
+                this.updateSelection(this.selectedIndex);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+                this.updateSelection(this.selectedIndex);
+                break;
+            case 'Enter':
+                if (this.selectedIndex >= 0 && this.suggestions[this.selectedIndex]) {
+                    e.preventDefault();
+                    this.selectSuggestion(this.selectedIndex);
+                }
+                break;
+            case 'Escape':
+                this.hideDropdown();
+                break;
+            case 'Tab':
+                this.hideDropdown();
+                break;
+        }
+    }
+    
+    updateSelection(index) {
+        this.selectedIndex = index;
+        this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+        });
+        
+        // Scroll into view if needed
+        const activeItem = this.dropdown.querySelector('.autosuggest-item.active');
+        if (activeItem) {
+            activeItem.scrollIntoView({ block: 'nearest' });
+        }
+    }
+    
+    selectSuggestion(index) {
+        if (this.suggestions[index]) {
+            this.input.value = this.suggestions[index].text;
+            this.hideDropdown();
+            this.input.focus();
+        }
+    }
+    
+    showDropdown() {
+        this.dropdown.classList.add('show');
+    }
+    
+    hideDropdown() {
+        this.dropdown.classList.remove('show');
+        this.selectedIndex = -1;
+    }
+}
+
+// Initialize auto-suggest for name and address fields
+new AutoSuggest('nameInput', 'nameDropdown');
+new AutoSuggest('fatherInput', 'fatherDropdown');
+new AutoSuggest('motherInput', 'motherDropdown');
+new AutoSuggest('addressInput', 'addressDropdown');
+</script>
+{% endblock %}

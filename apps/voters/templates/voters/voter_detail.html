@@ -1,0 +1,137 @@
+{% extends 'voters/base_voters.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Voter Details</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'voters:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'voters:voter_list' %}">Voters</a></li>
+                    <li class="breadcrumb-item active">{{ voter.name|default:"Details" }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Voter Info Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="avatar-xl mx-auto mb-3">
+                    <span class="avatar-title rounded-circle bg-{% if voter.gender == 'male' %}info{% elif voter.gender == 'female' %}danger{% else %}secondary{% endif %}-subtle fs-1">
+                        <i class="bx bx-{% if voter.gender == 'male' %}male{% elif voter.gender == 'female' %}female{% else %}user{% endif %} text-{% if voter.gender == 'male' %}info{% elif voter.gender == 'female' %}danger{% else %}secondary{% endif %}"></i>
+                    </span>
+                </div>
+                <h4 class="mb-1">{{ voter.name|default:"Unknown" }}</h4>
+                <p class="text-muted mb-3">
+                    {% if voter.gender == 'male' %}
+                    <span class="badge badge-male">Male</span>
+                    {% elif voter.gender == 'female' %}
+                    <span class="badge badge-female">Female</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Unknown</span>
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'voters:voter_list' %}" class="btn btn-soft-primary">
+                        <i class="bx bx-arrow-back me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bx bx-info-circle me-2"></i>Basic Info</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="py-2 border-bottom">
+                        <strong>Voter No:</strong>
+                        <span class="float-end"><code>{{ voter.voter_no|default:"-" }}</code></span>
+                    </li>
+                    <li class="py-2 border-bottom">
+                        <strong>Gender:</strong>
+                        <span class="float-end">{{ voter.gender|title }}</span>
+                    </li>
+                    <li class="py-2 border-bottom">
+                        <strong>Category:</strong>
+                        <span class="float-end">
+                            <a href="{% url 'voters:category_detail' voter.category.pk %}">{{ voter.category.name }}</a>
+                        </span>
+                    </li>
+                    <li class="py-2 border-bottom">
+                        <strong>Area Code:</strong>
+                        <span class="float-end"><code>{{ voter.category.code|default:"-" }}</code></span>
+                    </li>
+                    <li class="py-2">
+                        <strong>Source File:</strong>
+                        <span class="float-end text-muted small">{{ voter.source_file }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Data Card -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bx bx-data me-2"></i>All Voter Data (from Excel)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Field</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in voter.data.items %}
+                            <tr>
+                                <td><strong>{{ key }}</strong></td>
+                                <td>{{ value|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Path -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bx bx-folder-open me-2"></i>Category Hierarchy</h5>
+            </div>
+            <div class="card-body">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        {% for ancestor in voter.category.get_ancestors %}
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'voters:category_detail' ancestor.pk %}">{{ ancestor.name }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="breadcrumb-item active">{{ voter.category.name }}</li>
+                    </ol>
+                </nav>
+                <p class="text-muted mt-2 mb-0">
+                    <small><strong>Full Path:</strong> {{ voter.category.full_path }}</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
