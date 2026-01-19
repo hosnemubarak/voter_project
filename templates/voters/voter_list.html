@@ -59,7 +59,7 @@
 </div>
 
 <!-- Main Search Box -->
-<div class="card-modern mb-4" style="overflow: visible;">
+<div class="card-modern mb-4" id="mainSearchCard" style="overflow: visible;">
     <div class="card-body" style="overflow: visible;">
         <div class="search-container position-relative" style="z-index: 10000;">
             <form method="get" action="{% url 'voters:voter_list' %}" id="mainSearchForm">
@@ -441,16 +441,7 @@
                         <div class="voter-info-item">
                             <div class="voter-info-label">Status</div>
                             <div class="voter-info-value">
-                                <form method="post" id="modal-status-form" class="status-inline-form">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                    <select name="status" id="modal-status-select" class="form-select form-select-sm status-select" 
-                                            onchange="this.form.submit()" style="min-width: 100px;">
-                                        <option value="present">Present</option>
-                                        <option value="absent">Absent</option>
-                                        <option value="dead">Dead</option>
-                                    </select>
-                                </form>
+                                <span class="badge-status" id="modal-status-badge">Present</span>
                             </div>
                         </div>
                         <div class="voter-info-item">
@@ -512,12 +503,10 @@ function showVoterDetail(id, name, voterNo, gender, status, father, mother, prof
     }
     document.getElementById('modal-gender').innerHTML = genderHtml;
     
-    // Update status form and select
-    const statusForm = document.getElementById('modal-status-form');
-    const statusSelect = document.getElementById('modal-status-select');
-    statusForm.action = '/voters/voters/' + id + '/update-status/';
-    statusSelect.value = status;
-    statusSelect.className = 'form-select form-select-sm status-select ' + status;
+    // Update status badge
+    const statusBadge = document.getElementById('modal-status-badge');
+    statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    statusBadge.className = 'badge-status ' + status;
     
     document.getElementById('modal-father').textContent = father;
     document.getElementById('modal-mother').textContent = mother;
@@ -955,9 +944,64 @@ class AutoSuggest {
 }
 
 // Initialize auto-suggest for name and address fields
-new AutoSuggest('nameInput', 'nameDropdown');
-new AutoSuggest('fatherInput', 'fatherDropdown');
-new AutoSuggest('motherInput', 'motherDropdown');
-new AutoSuggest('addressInput', 'addressDropdown');
+const nameAutoSuggest = new AutoSuggest('nameInput', 'nameDropdown');
+const fatherAutoSuggest = new AutoSuggest('fatherInput', 'fatherDropdown');
+const motherAutoSuggest = new AutoSuggest('motherInput', 'motherDropdown');
+const addressAutoSuggest = new AutoSuggest('addressInput', 'addressDropdown');
+
+// Hide all auto-suggestion dropdowns and search elements when modal opens
+const voterModal = document.getElementById('voterModal');
+const mainSearchCard = document.getElementById('mainSearchCard');
+const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+
+if (voterModal) {
+    voterModal.addEventListener('show.bs.modal', function() {
+        // Hide auto-suggestion dropdowns
+        document.querySelectorAll('.autosuggest-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+        
+        // Hide main search card
+        if (mainSearchCard) {
+            mainSearchCard.style.display = 'none';
+        }
+        
+        // Hide autocomplete dropdown
+        if (autocompleteDropdown) {
+            autocompleteDropdown.classList.remove('show');
+        }
+    });
+    
+    voterModal.addEventListener('hidden.bs.modal', function() {
+        // Show main search card when modal closes
+        if (mainSearchCard) {
+            mainSearchCard.style.display = 'block';
+        }
+    });
+}
+
+// Clean up dropdowns on page unload to prevent them appearing on other pages
+window.addEventListener('beforeunload', function() {
+    document.querySelectorAll('.autosuggest-dropdown').forEach(dropdown => {
+        dropdown.classList.remove('show');
+        dropdown.innerHTML = '';
+    });
+});
+
+// Also hide dropdowns when navigating away
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        document.querySelectorAll('.autosuggest-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+    }
+});
+
+// Hide dropdowns on scroll
+window.addEventListener('scroll', function() {
+    document.querySelectorAll('.autosuggest-dropdown.show').forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
+}, { passive: true });
 </script>
 {% endblock %}

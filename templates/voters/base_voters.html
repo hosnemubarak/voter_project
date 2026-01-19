@@ -465,6 +465,7 @@
 /* Auto-suggestion Styles */
 .autosuggest-wrapper {
     position: relative;
+    isolation: isolate;
 }
 .autosuggest-dropdown {
     position: absolute;
@@ -480,9 +481,14 @@
     overflow-y: auto;
     z-index: 1050;
     display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
 }
 .autosuggest-dropdown.show {
     display: block;
+    visibility: visible;
+    opacity: 1;
 }
 .autosuggest-item {
     padding: 10px 14px;
