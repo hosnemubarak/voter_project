@@ -26,17 +26,17 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn voter_project.wsgi:application --bind 0.0.0.0:8090"
+             python manage.py runserver 0.0.0.0:8090"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
     ports:
       - "8090:8090"
     environment:
-      - DEBUG=${DEBUG:-False}
+      - DEBUG=${DEBUG:-True}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - DATABASE_URL=postgres://${POSTGRES_USER:-voter_user}:${POSTGRES_PASSWORD:-voter_password}@db:5432/${POSTGRES_DB:-voter_db}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
     depends_on:
       db:
         condition: service_healthy
