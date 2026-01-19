@@ -354,7 +354,7 @@
                     </div>
                     <button type="button" class="btn btn-sm btn-primary w-100" 
                             data-bs-toggle="modal" data-bs-target="#voterModal"
-                            onclick="showVoterDetail({{ voter.pk }}, '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.profession|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}', '{{ voter.source_file|default:"-"|escapejs }}')">
+                            onclick="showVoterDetail({{ voter.pk }}, '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.status }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.profession|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}', '{{ voter.source_file|default:"-"|escapejs }}')">
                         <i class="las la-eye me-1"></i> View Details
                     </button>
                 </div>
