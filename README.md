@@ -272,15 +272,15 @@ Application logs are stored in the `logs/` directory:
    ```
 
 5. **Access the application**
-   - Main site: http://localhost:8000/
-   - Admin panel: http://localhost:8000/admin/
+   - Main site: http://localhost:8090/
+   - Admin panel: http://localhost:8090/admin/
 
 ### Docker Services
 
 | Service | Description | Port |
 |---------|-------------|------|
 | `db` | PostgreSQL 15 database | 5432 |
-| `web` | Django application | 8000 |
+| `web` | Django application | 8090 |
 
 ### Docker Commands
 

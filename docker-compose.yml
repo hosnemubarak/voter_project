@@ -26,12 +26,12 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn voter_project.wsgi:application --bind 0.0.0.0:8000"
+             gunicorn voter_project.wsgi:application --bind 0.0.0.0:8090"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
     ports:
-      - "8000:8000"
+      - "8090:8090"
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
