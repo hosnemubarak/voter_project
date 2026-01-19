@@ -112,7 +112,10 @@ voter_project/
    ```bash
    copy .env.example .env
    ```
-   Edit `.env` file and update settings as needed (SECRET_KEY, DEBUG, etc.)
+   Edit `.env` file and update settings as needed:
+   - `SECRET_KEY`: Change to a secure random key for production
+   - `DEBUG`: Set to `False` in production
+   - `VOTER_DATA_PATH`: Set the path to your voter data folder (supports both Windows and Linux paths)
 
 6. **Run database migrations**
    ```bash
@@ -422,20 +425,27 @@ Any additional columns will be stored in the `extra_data` JSON field.
 
 ### Import Commands
 
-**Basic Import:**
+**Basic Import (using VOTER_DATA_PATH from .env):**
+```bash
+python manage.py import_voters
+```
+
+**Import with custom path:**
 ```bash
 python manage.py import_voters --base-path "path/to/excel/files"
 ```
 
 **Clear existing data and reimport:**
 ```bash
-python manage.py import_voters --base-path "path/to/excel/files" --clear
+python manage.py import_voters --clear
 ```
 
 **Preview import (dry run):**
 ```bash
-python manage.py import_voters --base-path "path/to/excel/files" --dry-run
+python manage.py import_voters --dry-run
 ```
+
+> **Note:** The `--base-path` argument is optional. If not provided, the command uses the `VOTER_DATA_PATH` environment variable from your `.env` file.
 
 **Update search index after manual changes:**
 ```bash

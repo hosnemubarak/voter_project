@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.conf import settings
 
 from apps.voters.models import Category, Voter, ExcelColumnSchema
 
@@ -16,9 +17,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--base-path',
             type=str,
-            # default=r'D:\personal\ui_project_election_data\election_votar_data',
-            default=r'D:\personal\voter_application\voter_project\election_votar_data',
-            help='Base path to scan for voter data folders'
+            default=os.getenv('VOTER_DATA_PATH', 'election_votar_data'),
+            help='Base path to scan for voter data folders (default from VOTER_DATA_PATH env variable)'
         )
         parser.add_argument(
             '--clear',
