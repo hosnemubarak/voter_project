@@ -59,6 +59,7 @@ def voter_list(request):
     father_query = request.GET.get('father', '').strip()
     mother_query = request.GET.get('mother', '').strip()
     voter_no_query = request.GET.get('voter_no', '').strip()
+    serial_query = request.GET.get('serial', '').strip()
     gender = request.GET.get('gender', '')
     status = request.GET.get('status', '')
     
@@ -82,6 +83,7 @@ def voter_list(request):
     # Apply search filters - uses icontains for partial match ("contains" search)
     if search_query:
         voters = voters.filter(
+            Q(serial__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(voter_no__icontains=search_query) |
             Q(father__icontains=search_query) |
@@ -101,6 +103,9 @@ def voter_list(request):
     
     if voter_no_query:
         voters = voters.filter(voter_no__icontains=voter_no_query)
+    
+    if serial_query:
+        voters = voters.filter(serial__icontains=serial_query)
     
     if address_query:
         voters = voters.filter(address__icontains=address_query)
@@ -178,6 +183,7 @@ def voter_list(request):
         'father_query': father_query,
         'mother_query': mother_query,
         'voter_no_query': voter_no_query,
+        'serial_query': serial_query,
         'address_query': address_query,
         'profession_query': profession_query,
         'selected_upazila': upazila_id,
@@ -431,8 +437,8 @@ def api_search_suggestions(request):
     if len(query) < 2:
         return JsonResponse({'suggestions': []})
     
-    # Validate field - only allow name-based fields and address
-    allowed_fields = ['name', 'father', 'mother', 'address']
+    # Validate field - only allow name-based fields, serial, and address
+    allowed_fields = ['name', 'father', 'mother', 'address', 'serial']
     if field not in allowed_fields:
         field = 'name'
     

@@ -70,7 +70,7 @@ class Voter(models.Model):
                                  db_index=True, verbose_name="Category")
     
     # Core voter fields (indexed for fast search)
-    serial = models.CharField(max_length=100, blank=True, null=True, verbose_name="Serial")
+    serial = models.CharField(max_length=100, blank=True, null=True, db_index=True, verbose_name="Serial")
     name = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                            verbose_name="Name")
     voter_no = models.CharField(max_length=100, blank=True, null=True, db_index=True,
@@ -120,6 +120,7 @@ class Voter(models.Model):
     def build_search_text(self):
         """Combine all searchable fields into one text for fast searching"""
         parts = [
+            self.serial or '',
             self.name or '',
             self.father or '',
             self.mother or '',
