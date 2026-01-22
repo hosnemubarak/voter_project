@@ -301,7 +301,8 @@ docker-compose down
 docker-compose up -d --build
 
 # Import voter data
-docker-compose exec web python manage.py import_voters --base-path "/app/election_votar_data"
+docker compose exec web python manage.py import_voters --base-path "/app/election_votar_data"
+docker compose exec web python manage.py import_voters_all --base-path "/app/election_votar_data"
 ```
 
 ## Production Deployment
