@@ -40,7 +40,7 @@ class Category(models.Model):
 class ExcelColumnSchema(models.Model):
     """Tracks discovered Excel column names for dynamic filtering"""
     column_name = models.CharField(max_length=255, unique=True, db_index=True)
-    column_type = models.CharField(max_length=50, default='text')
+    column_type = models.CharField(max_length=100, default='text')
     discovered_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -70,10 +70,10 @@ class Voter(models.Model):
                                  db_index=True, verbose_name="Category")
     
     # Core voter fields (indexed for fast search)
-    serial = models.CharField(max_length=100, blank=True, null=True, db_index=True, verbose_name="Serial")
+    serial = models.CharField(max_length=255, blank=True, null=True, db_index=True, verbose_name="Serial")
     name = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                            verbose_name="Name")
-    voter_no = models.CharField(max_length=100, blank=True, null=True, db_index=True,
+    voter_no = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                                verbose_name="Voter No")
     father = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                              verbose_name="Father Name")
@@ -81,12 +81,12 @@ class Voter(models.Model):
                              verbose_name="Mother Name")
     profession = models.CharField(max_length=255, blank=True, null=True, db_index=True,
                                  verbose_name="Profession")
-    dob = models.CharField(max_length=100, blank=True, null=True, verbose_name="Date of Birth")
+    dob = models.CharField(max_length=255, blank=True, null=True, verbose_name="Date of Birth")
     address = models.TextField(blank=True, null=True, verbose_name="Address")
     
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='unknown',
+    gender = models.CharField(max_length=100, choices=GENDER_CHOICES, default='unknown',
                              db_index=True, verbose_name="Gender")
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='present',
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='present',
                              db_index=True, verbose_name="Status")
     source_file = models.CharField(max_length=500, verbose_name="Source Excel File")
     
