@@ -1089,5 +1089,34 @@ window.addEventListener('scroll', function() {
         dropdown.classList.remove('show');
     });
 }, { passive: true });
+
+// ============================================
+// Persist Advanced Filters collapse state
+// ============================================
+(function() {
+    const FILTER_STATE_KEY = 'voterListFilterExpanded';
+    const filterCollapse = document.getElementById('filterCollapse');
+    const filterHeader = document.querySelector('[data-bs-target="#filterCollapse"]');
+    
+    if (!filterCollapse || !filterHeader) return;
+    
+    // Restore state on page load
+    const savedState = localStorage.getItem(FILTER_STATE_KEY);
+    if (savedState === 'true') {
+        // Use Bootstrap's Collapse API to show
+        filterCollapse.classList.add('show');
+        filterHeader.setAttribute('aria-expanded', 'true');
+    }
+    
+    // Save state when collapse is shown
+    filterCollapse.addEventListener('shown.bs.collapse', function() {
+        localStorage.setItem(FILTER_STATE_KEY, 'true');
+    });
+    
+    // Save state when collapse is hidden
+    filterCollapse.addEventListener('hidden.bs.collapse', function() {
+        localStorage.setItem(FILTER_STATE_KEY, 'false');
+    });
+})();
 </script>
 {% endblock %}
