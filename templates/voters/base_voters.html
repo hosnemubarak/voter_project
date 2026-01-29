@@ -742,21 +742,30 @@
 /* Mobile Auto-suggestion Improvements */
 @media (max-width: 768px) {
     .autosuggest-dropdown {
-        max-height: 220px;
+        max-height: 200px;
         border-radius: 10px;
-        position: fixed;
-        left: 16px;
-        right: 16px;
-        width: auto;
-        top: auto;
+        /* Keep absolute positioning - don't use fixed on mobile */
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 2px);
+        width: 100%;
     }
     .autosuggest-item {
         padding: 14px 16px;
         font-size: 15px;
         min-height: 48px;
+        /* Better touch feedback */
+        -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
     }
     .autosuggest-item-icon {
         font-size: 18px;
+    }
+    
+    /* Ensure wrapper creates proper stacking context on mobile */
+    .autosuggest-wrapper {
+        position: relative;
+        z-index: 1000;
     }
     
     /* Form elements on mobile */
@@ -769,9 +778,12 @@
     /* Filter panel on mobile */
     .filter-panel .collapse {
         padding: 0 16px;
+        /* Allow dropdowns to overflow on mobile */
+        overflow: visible !important;
     }
     .filter-panel .collapse.show {
         padding-bottom: 16px;
+        overflow: visible !important;
     }
     .filter-actions {
         padding: 12px 16px;
@@ -789,9 +801,7 @@
 /* Small mobile improvements */
 @media (max-width: 480px) {
     .autosuggest-dropdown {
-        left: 8px;
-        right: 8px;
-        max-height: 200px;
+        max-height: 180px;
     }
     .autosuggest-item {
         padding: 12px 14px;

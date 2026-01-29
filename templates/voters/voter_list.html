@@ -646,7 +646,19 @@ function renderResults(voters, query) {
             </div>
         `;
         
-        item.addEventListener('click', () => selectResult(voter));
+        // Touch events for mobile
+        item.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectResult(voter);
+        }, { passive: false });
+        
+        // Click for desktop
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            selectResult(voter);
+        });
+        
         item.addEventListener('mouseenter', () => updateSelection(index));
         
         resultsContainer.appendChild(item);
@@ -709,10 +721,32 @@ searchInput.addEventListener('focus', function() {
     }
 });
 
+// Track touch state for mobile
+let isTouchingDropdown = false;
+
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.search-container')) {
         hideDropdown();
     }
+});
+
+// Prevent dropdown close during touch on mobile
+dropdown.addEventListener('touchstart', () => {
+    isTouchingDropdown = true;
+}, { passive: true });
+
+dropdown.addEventListener('touchend', () => {
+    setTimeout(() => { isTouchingDropdown = false; }, 100);
+}, { passive: true });
+
+// Handle blur with mobile-friendly delay
+searchInput.addEventListener('blur', function() {
+    const delay = 'ontouchstart' in window ? 300 : 150;
+    setTimeout(() => {
+        if (!isTouchingDropdown) {
+            hideDropdown();
+        }
+    }, delay);
 });
 
 clearBtn.addEventListener('click', function() {
@@ -725,6 +759,7 @@ clearBtn.addEventListener('click', function() {
 function hideDropdown() {
     dropdown.classList.remove('show');
     selectedIndex = -1;
+    isTouchingDropdown = false;
 }
 
 function escapeHtml(text) {
@@ -760,6 +795,9 @@ class AutoSuggest {
     }
     
     init() {
+        // Track if touch/pointer is active on dropdown (for mobile)
+        this.isSelectingItem = false;
+        
         // Input event with debouncing
         this.input.addEventListener('input', () => {
             clearTimeout(this.debounceTimer);
@@ -776,21 +814,32 @@ class AutoSuggest {
             }
         });
         
-        // Blur event - hide dropdown with slight delay for click handling
+        // Blur event - hide dropdown with delay for touch/click handling on mobile
         this.input.addEventListener('blur', (e) => {
+            // Longer delay on mobile to ensure touch events complete
+            const delay = 'ontouchstart' in window ? 300 : 150;
             setTimeout(() => {
-                if (!this.dropdown.contains(document.activeElement)) {
+                if (!this.isSelectingItem && !this.dropdown.contains(document.activeElement)) {
                     this.hideDropdown();
                 }
-            }, 150);
+            }, delay);
         });
         
-        // Close on outside click
+        // Close on outside click/touch
         document.addEventListener('click', (e) => {
             if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
                 this.hideDropdown();
             }
         });
+        
+        // Prevent dropdown from closing when touching it on mobile
+        this.dropdown.addEventListener('touchstart', () => {
+            this.isSelectingItem = true;
+        }, { passive: true });
+        
+        this.dropdown.addEventListener('touchend', () => {
+            setTimeout(() => { this.isSelectingItem = false; }, 100);
+        }, { passive: true });
     }
     
     async fetchSuggestions() {
@@ -869,11 +918,22 @@ class AutoSuggest {
         
         // Add click and touch handlers for better mobile support
         this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, index) => {
-            // Use pointerdown for immediate feedback on mobile
-            item.addEventListener('pointerdown', (e) => {
+            // Touch events for mobile - use touchend for reliable selection
+            item.addEventListener('touchend', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                this.isSelectingItem = false;
+                this.selectSuggestion(index);
+            }, { passive: false });
+            
+            // Click for desktop
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 this.selectSuggestion(index);
             });
+            
+            // Hover for desktop
             item.addEventListener('mouseenter', () => this.updateSelection(index));
         });
     }
