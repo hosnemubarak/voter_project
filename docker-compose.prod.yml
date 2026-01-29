@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  voter_db:
+    image: postgres:15-alpine
+    container_name: voter_db_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-voter_db}
+      POSTGRES_USER: ${POSTGRES_USER:-voter_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-voter_password}
+    volumes:
+      - voter_project_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-voter_user} -d ${POSTGRES_DB:-voter_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - voter_internal
+
+  voter_web:
+    build: .
+    container_name: voter_web_prod
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn voter_project.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 60 --access-logfile - --error-logfile - --log-level info"
+    env_file:
+      - .env
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgres://${POSTGRES_USER:-voter_user}:${POSTGRES_PASSWORD:-voter_password}@voter_db:5432/${POSTGRES_DB:-voter_db}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-app.najmulmostafaamin.com}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-https://app.najmulmostafaamin.com}
+    volumes:
+      - /home/ubuntu/VoterApp/voter_project/staticfiles:/app/staticfiles
+      - /home/ubuntu/VoterApp/voter_project/media:/app/media
+      - /home/ubuntu/VoterApp/voter_project/logs:/app/logs
+    expose:
+      - "8000"
+    depends_on:
+      voter_db:
+        condition: service_healthy
+    networks:
+      - voter_internal
+      - election_election_network
+
+volumes:
+  voter_project_postgres_data:
+    external: true
+
+networks:
+  voter_internal:
+    driver: bridge
+  election_election_network:
+    external: true
+    name: election_election_network

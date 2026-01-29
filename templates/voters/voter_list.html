@@ -1,5 +1,5 @@
 {% extends 'voters/base_voters.html' %}
-{% load humanize %}
+{% load humanize pagination_tags %}
 
 {% block content %}
 <!-- Page Title -->
@@ -372,41 +372,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="p-3 border-top">
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-modern justify-content-center mb-0 flex-wrap">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}" title="First">
-                            <i class="las la-angle-double-left"></i>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" title="Previous">
-                            <i class="las la-angle-left"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-                    </li>
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" title="Next">
-                            <i class="las la-angle-right"></i>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" title="Last">
-                            <i class="las la-angle-double-right"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
+        {% render_pagination page_obj %}
         {% else %}
         <div class="empty-state">
             <div class="empty-icon">
@@ -785,6 +751,8 @@ class AutoSuggest {
         this.debounceTimer = null;
         this.selectedIndex = -1;
         this.suggestions = [];
+        this.isLoading = false;
+        this.abortController = null;
         
         if (this.input && this.dropdown) {
             this.init();
@@ -795,17 +763,26 @@ class AutoSuggest {
         // Input event with debouncing
         this.input.addEventListener('input', () => {
             clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 300);
+            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
         });
         
         // Keyboard navigation
         this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
         
-        // Focus event
+        // Focus event - show dropdown if we have cached suggestions
         this.input.addEventListener('focus', () => {
             if (this.input.value.trim().length >= 2 && this.suggestions.length > 0) {
                 this.showDropdown();
             }
+        });
+        
+        // Blur event - hide dropdown with slight delay for click handling
+        this.input.addEventListener('blur', (e) => {
+            setTimeout(() => {
+                if (!this.dropdown.contains(document.activeElement)) {
+                    this.hideDropdown();
+                }
+            }, 150);
         });
         
         // Close on outside click
@@ -824,13 +801,20 @@ class AutoSuggest {
             return;
         }
         
+        // Cancel previous request if still pending
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+        
         // Get current category filters
         const upazila = document.getElementById('upazilaSelect')?.value || '';
         const union = document.getElementById('unionSelect')?.value || '';
         const voterArea = document.getElementById('voterAreaSelect')?.value || '';
         
         // Show loading
-        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm"></span> Loading...</div>';
+        this.isLoading = true;
+        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm text-primary"></span> <span class="ms-2">Searching...</span></div>';
         this.showDropdown();
         
         try {
@@ -843,14 +827,22 @@ class AutoSuggest {
                 limit: 10
             });
             
-            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`);
+            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`, {
+                signal: this.abortController.signal
+            });
             const data = await response.json();
             
+            this.isLoading = false;
             this.suggestions = data.suggestions || [];
             this.renderSuggestions(query);
         } catch (error) {
+            if (error.name === 'AbortError') {
+                // Request was cancelled, ignore
+                return;
+            }
             console.error('Auto-suggest error:', error);
-            this.dropdown.innerHTML = '<div class="autosuggest-empty">Error loading suggestions</div>';
+            this.isLoading = false;
+            this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-exclamation-circle me-1"></i> Error loading suggestions</div>';
         }
     }
     
