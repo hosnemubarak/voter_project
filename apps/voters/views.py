@@ -171,6 +171,13 @@ def voter_list(request):
         'female_count': Voter.objects.filter(gender='female').count(),
     }
 
+    # Debug pagination values
+    print(f"DEBUG: page_obj.number = {page_obj.number}")
+    print(f"DEBUG: page_obj.paginator.num_pages = {page_obj.paginator.num_pages}")
+    print(f"DEBUG: page_obj.has_previous = {page_obj.has_previous}")
+    print(f"DEBUG: page_obj.has_next = {page_obj.has_next}")
+    print(f"DEBUG: Total voters in queryset = {voters.count()}")
+    
     context = {
         'page_obj': page_obj,
         'voters': page_obj,
