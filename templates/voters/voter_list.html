@@ -169,49 +169,16 @@
             <div class="mb-4">
                 <h6 class="mb-3 text-primary"><i class="las la-user me-2"></i>Voter Information</h6>
                 <div class="row g-3">
-                    <!-- Name -->
-                    <div class="col-md-6 col-lg-3">
-                        <label class="form-label">Name</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
-                                   value="{{ name_query }}" placeholder="Enter name..." 
-                                   data-field="name" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="nameDropdown"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Serial No -->
-                    <div class="col-md-6 col-lg-3">
-                        <label class="form-label">Serial No</label>
-                        <input type="text" class="form-control" name="serial" value="{{ serial_query }}" placeholder="Enter serial no...">
-                    </div>
-                    
                     <!-- Voter No -->
                     <div class="col-md-6 col-lg-3">
                         <label class="form-label">Voter No</label>
                         <input type="text" class="form-control" name="voter_no" value="{{ voter_no_query }}" placeholder="Enter voter no...">
                     </div>
                     
-                    <!-- Father Name -->
+                    <!-- Serial No -->
                     <div class="col-md-6 col-lg-3">
-                        <label class="form-label">Father</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
-                                   value="{{ father_query }}" placeholder="Enter father name..." 
-                                   data-field="father" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="fatherDropdown"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Mother Name -->
-                    <div class="col-md-6 col-lg-3">
-                        <label class="form-label">Mother</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
-                                   value="{{ mother_query }}" placeholder="Enter mother name..." 
-                                   data-field="mother" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="motherDropdown"></div>
-                        </div>
+                        <label class="form-label">Serial No</label>
+                        <input type="text" class="form-control" name="serial" value="{{ serial_query }}" placeholder="Enter serial no...">
                     </div>
                     
                     <!-- Gender -->
@@ -235,8 +202,41 @@
                         </select>
                     </div>
                     
+                    <!-- Name -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">Name</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
+                                   value="{{ name_query }}" placeholder="Enter name..." 
+                                   data-field="name" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="nameDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Father Name -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">Father</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
+                                   value="{{ father_query }}" placeholder="Enter father name..." 
+                                   data-field="father" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="fatherDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mother Name -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">Mother</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
+                                   value="{{ mother_query }}" placeholder="Enter mother name..." 
+                                   data-field="mother" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="motherDropdown"></div>
+                        </div>
+                    </div>
+                    
                     <!-- Address -->
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-12">
                         <label class="form-label">Address</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="address" id="addressInput" 

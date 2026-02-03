@@ -1,0 +1,859 @@
+{% extends 'public/base_public.html' %}
+{% load humanize static %}
+
+{% block title %}ভোটার স্লিপ ডাউনলোড{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header-card mb-4">
+    <div class="page-header-content">
+        <img src="{% static 'images/logo-voter-search-page.png' %}" alt="Logo" class="header-logo">
+        <div class="header-text">
+            <h1 class="header-title">ভোটার স্লিপ ডাউনলোড</h1>
+            <p class="header-subtitle">Voter Slip Download</p>
+        </div>
+    </div>
+    <p class="header-description">
+        <i class="las la-info-circle me-1"></i>
+        ভোটার তথ্য খুঁজুন এবং স্লিপ ডাউনলোড করুন
+    </p>
+</div>
+
+
+<!-- Filters / ফিল্টার -->
+<div class="filter-panel mb-4">
+    <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true">
+        <h6><i class="las la-filter me-2"></i>ভোটার খুঁজুন / Search Voter</h6>
+        <i class="las la-chevron-down fs-4"></i>
+    </div>
+    <div class="collapse show" id="filterCollapse">
+        <form method="get" action="" id="searchForm" class="mt-3">
+            
+            <!-- Category Hierarchy / এলাকা নির্বাচন -->
+            <div class="mb-4 p-3 bg-light rounded">
+                <h6 class="mb-3 text-primary"><i class="las la-map-marker me-2"></i>এলাকা নির্বাচন / Select Area</h6>
+                <div class="row g-3">
+                    <!-- Upazila / উপজেলা -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">উপজেলা / Upazila</label>
+                        <div class="position-relative">
+                            <select class="form-select" name="upazila" id="upazilaSelect">
+                                <option value="">-- উপজেলা নির্বাচন করুন --</option>
+                                {% for upazila in upazilas %}
+                                <option value="{{ upazila.id }}" {% if selected_upazila == upazila.id|stringformat:"i" %}selected{% endif %}>{{ upazila.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Union / ইউনিয়ন -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">ইউনিয়ন / Union</label>
+                        <div class="position-relative">
+                            <select class="form-select" name="union" id="unionSelect" {% if not selected_upazila %}disabled{% endif %}>
+                                <option value="">-- ইউনিয়ন নির্বাচন করুন --</option>
+                                {% for union in unions %}
+                                <option value="{{ union.id }}" {% if selected_union == union.id|stringformat:"i" %}selected{% endif %}>{{ union.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Voter Area / ভোটার এলাকা -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">ভোটার এলাকা / Voter Area</label>
+                        <div class="position-relative">
+                            <select class="form-select" name="voter_area" id="voterAreaSelect" {% if not selected_union %}disabled{% endif %}>
+                                <option value="">-- এলাকা নির্বাচন করুন --</option>
+                                {% for area in voter_areas %}
+                                <option value="{{ area.id }}" {% if selected_voter_area == area.id|stringformat:"i" %}selected{% endif %}>{{ area.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Voter Information Filters / ভোটার তথ্য -->
+            <div class="mb-4">
+                <h6 class="mb-3 text-primary"><i class="las la-user me-2"></i>ভোটার তথ্য / Voter Information</h6>
+                <div class="row g-3">
+                    <!-- Name / নাম -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">নাম / Name</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
+                                   value="{{ name_query }}" placeholder="নাম লিখুন..." 
+                                   data-field="name" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="nameDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Father Name / পিতার নাম -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">পিতার নাম / Father</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
+                                   value="{{ father_query }}" placeholder="পিতার নাম লিখুন..." 
+                                   data-field="father" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="fatherDropdown"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mother Name / মাতার নাম -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">মাতার নাম / Mother</label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
+                                   value="{{ mother_query }}" placeholder="মাতার নাম লিখুন..." 
+                                   data-field="mother" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="motherDropdown"></div>
+                        </div>
+                    </div>
+                    <!-- Voter No / ভোটার নং -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">ভোটার নং / Voter ID <span class="text-muted">(ঐচ্ছিক / Optional)</span></label>
+                        <input type="text" class="form-control" name="voter_no" value="{{ voter_no_query }}" placeholder="ভোটার নং লিখুন...">
+                    </div>
+                    
+                    <!-- Serial No / ক্রমিক নং -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">ক্রমিক নং / Serial No <span class="text-muted">(ঐচ্ছিক / Optional)</span></label>
+                        <input type="text" class="form-control" name="serial" value="{{ serial_query }}" placeholder="ক্রমিক নং লিখুন...">
+                    </div>
+                    
+                    <!-- Gender / লিঙ্গ -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">লিঙ্গ / Gender</label>
+                        <select class="form-select" name="gender">
+                            <option value="all" {% if selected_gender == 'all' or not selected_gender %}selected{% endif %}>সকল / All</option>
+                            <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>পুরুষ / Male</option>
+                            <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>মহিলা / Female</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Address / ঠিকানা -->
+                    <div class="col-12">
+                        <label class="form-label">ঠিকানা / Address <span class="text-muted">(ঐচ্ছিক / Optional)</span></label>
+                        <div class="autosuggest-wrapper">
+                            <input type="text" class="form-control autosuggest-input" name="address" id="addressInput" 
+                                   value="{{ address_query }}" placeholder="ঠিকানা লিখুন..." 
+                                   data-field="address" autocomplete="off">
+                            <div class="autosuggest-dropdown" id="addressDropdown"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons / অ্যাকশন বাটন -->
+            <div class="filter-actions d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary btn-modern" id="searchBtn">
+                    <i class="las la-search me-1"></i> খুঁজুন / Search
+                </button>
+                <a href="{% url 'public_search:advanced_search' %}" class="btn btn-outline-secondary btn-modern">
+                    <i class="las la-redo-alt me-1"></i> মুছুন / Clear
+                </a>
+                {% if has_filters and page_obj %}
+                <span class="text-muted small align-self-center ms-auto">
+                    <i class="las la-info-circle me-1"></i>
+                    <strong>{{ page_obj.paginator.count|intcomma }}</strong> ভোটার পাওয়া গেছে
+                </span>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Section -->
+{% if has_filters %}
+<div class="card-modern">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h5 class="mb-0">
+            <i class="las la-list me-2"></i>ফলাফল / Results
+            {% if page_obj %}
+            <span class="badge bg-primary-subtle text-primary ms-2">{{ page_obj.paginator.count|intcomma }} records</span>
+            {% endif %}
+        </h5>
+        {% if page_obj %}
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small d-none d-md-inline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj and page_obj.object_list %}
+        <!-- Desktop Table View -->
+        <div class="table-responsive-modern d-none d-md-block">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px">ক্রমিক</th>
+                        <th>নাম</th>
+                        <th>ভোটার নং</th>
+                        <th>লিঙ্গ</th>
+                        <th>পিতা</th>
+                        <th>মাতা</th>
+                        <th style="width: 120px">ডাউনলোড</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voter in page_obj %}
+                    <tr>
+                        <td><code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold">{{ voter.serial|default:"-" }}</code></td>
+                        <td><strong class="text-dark">{{ voter.name|default:"-" }}</strong></td>
+                        <td><code class="bg-light px-2 py-1 rounded">{{ voter.voter_no|default:"-" }}</code></td>
+                        <td>
+                            {% if voter.gender == 'male' %}
+                            <span class="badge-gender male">পুরুষ</span>
+                            {% elif voter.gender == 'female' %}
+                            <span class="badge-gender female">মহিলা</span>
+                            {% else %}
+                            <span class="badge-gender unknown">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="voter-data-cell" title="{{ voter.father|default:'-' }}">{{ voter.father|default:"-" }}</td>
+                        <td class="voter-data-cell" title="{{ voter.mother|default:'-' }}">{{ voter.mother|default:"-" }}</td>
+                        <td>
+                            <button type="button" class="btn btn-icon btn-soft-primary me-1" 
+                                    data-bs-toggle="modal" data-bs-target="#voterModal"
+                                    onclick="showVoterDetail({{ voter.pk }}, '{{ voter.serial|default:"-"|escapejs }}', '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}')"
+                                    title="বিস্তারিত দেখুন">
+                                <i class="las la-eye fs-5"></i>
+                            </button>
+                            <button type="button" class="btn btn-icon btn-soft-primary"
+                                    onclick="showSlipModal({{ voter.pk }})"
+                                    title="স্লিপ ডাউনলোড">
+                                <i class="las la-download fs-5"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Mobile Card View -->
+        <div class="d-md-none p-3">
+            {% for voter in page_obj %}
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold small">{{ voter.serial|default:"-" }}</code>
+                                {% if voter.gender == 'male' %}
+                                <span class="badge-gender male">পুরুষ</span>
+                                {% elif voter.gender == 'female' %}
+                                <span class="badge-gender female">মহিলা</span>
+                                {% else %}
+                                <span class="badge-gender unknown">-</span>
+                                {% endif %}
+                            </div>
+                            <h6 class="mb-1 text-dark">{{ voter.name|default:"-" }}</h6>
+                            <code class="small text-muted">{{ voter.voter_no|default:"-" }}</code>
+                        </div>
+                    </div>
+                    <div class="small text-muted mb-2">
+                        <div><strong>পিতা:</strong> {{ voter.father|default:"-" }}</div>
+                        <div><strong>মাতা:</strong> {{ voter.mother|default:"-" }}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-primary flex-grow-1" 
+                                data-bs-toggle="modal" data-bs-target="#voterModal"
+                                onclick="showVoterDetail({{ voter.pk }}, '{{ voter.serial|default:"-"|escapejs }}', '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}')">
+                            <i class="las la-eye me-1"></i> দেখুন
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                onclick="showSlipModal({{ voter.pk }})">
+                            <i class="las la-download me-1"></i> স্লিপ
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-wrapper">
+            <nav class="pagination-nav">
+                <ul class="pagination pagination-modern justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                            <i class="las la-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                            <i class="las la-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                            <i class="las la-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">
+                            <i class="las la-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="las la-search"></i>
+            </div>
+            <h5>কোনো ভোটার পাওয়া যায়নি</h5>
+            <p>No voters found. অনুগ্রহ করে আবার চেষ্টা করুন।</p>
+            <a href="{% url 'public_search:advanced_search' %}" class="btn btn-primary btn-modern">
+                <i class="las la-redo-alt me-1"></i> মুছুন / Clear
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<!-- Initial State - No Search Yet -->
+<div class="card-modern">
+    <div class="card-body">
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="las la-id-card"></i>
+            </div>
+            <h5>ভোটার তথ্য খুঁজুন</h5>
+            <p>উপরের ফিল্টার ব্যবহার করে ভোটার খুঁজুন। নাম, ভোটার নং, পিতা/মাতার নাম, বা এলাকা দিয়ে খুঁজতে পারবেন।</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Voter Detail Modal -->
+<div class="modal fade" id="voterModal" tabindex="-1" aria-labelledby="voterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="voterModalLabel">
+                    <i class="las la-user me-2"></i>ভোটার তথ্য / Voter Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">ক্রমিক নং / Serial</div>
+                            <div class="voter-info-value"><code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold" id="modal-serial">-</code></div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">নাম / Name</div>
+                            <div class="voter-info-value" id="modal-name">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">ভোটার নং / Voter ID</div>
+                            <div class="voter-info-value"><code id="modal-voter-no">-</code></div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">লিঙ্গ / Gender</div>
+                            <div class="voter-info-value" id="modal-gender">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">পিতার নাম / Father</div>
+                            <div class="voter-info-value" id="modal-father">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">মাতার নাম / Mother</div>
+                            <div class="voter-info-value" id="modal-mother">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">জন্ম তারিখ / Date of Birth</div>
+                            <div class="voter-info-value" id="modal-dob">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">ঠিকানা / Address</div>
+                            <div class="voter-info-value" id="modal-address">-</div>
+                        </div>
+                        <div class="voter-info-item">
+                            <div class="voter-info-label">এলাকা / Area</div>
+                            <div class="voter-info-value" id="modal-category">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary btn-modern" onclick="downloadFromModal()">
+                    <i class="las la-download me-1"></i> স্লিপ ডাউনলোড
+                </button>
+                <button type="button" class="btn btn-secondary btn-modern" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Voter Slip Modal -->
+<div class="modal fade" id="slipModal" tabindex="-1" aria-labelledby="slipModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="slipModalLabel">
+                    <i class="las la-id-card me-2"></i>ভোটার স্লিপ / Voter Slip
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Voter Slip Content -->
+                <div class="voter-slip" id="voterSlipContent">
+                    <div class="voter-slip-header">
+                        <img src="{% static 'images/logo-voter-search-page.png' %}" alt="Logo" class="slip-logo" style="max-width: 80px; height: auto; margin-bottom: 10px;">
+                        <h4>ভোটার স্লিপ</h4>
+                        <p>Voter Information Slip</p>
+                    </div>
+                    <div class="voter-slip-body">
+                        <div class="slip-row">
+                            <span class="slip-label">ক্রমিক নং:</span>
+                            <span class="slip-value" id="slip-serial">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">নাম:</span>
+                            <span class="slip-value" id="slip-name">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">ভোটার নং:</span>
+                            <span class="slip-value" id="slip-voter-no">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">পিতার নাম:</span>
+                            <span class="slip-value" id="slip-father">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">মাতার নাম:</span>
+                            <span class="slip-value" id="slip-mother">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">লিঙ্গ:</span>
+                            <span class="slip-value" id="slip-gender">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">জন্ম তারিখ:</span>
+                            <span class="slip-value" id="slip-dob">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">ঠিকানা:</span>
+                            <span class="slip-value" id="slip-address">-</span>
+                        </div>
+                        <div class="slip-row">
+                            <span class="slip-label">এলাকা:</span>
+                            <span class="slip-value" id="slip-category">-</span>
+                        </div>
+                    </div>
+                    <div class="voter-slip-footer">
+                        <p>এই স্লিপটি শুধুমাত্র তথ্যের জন্য</p>
+                    </div>
+                </div>
+                
+                <!-- Download Buttons -->
+                <div class="download-btn-group">
+                    <button type="button" class="btn btn-primary" onclick="downloadAsPDF()">
+                        <i class="las la-file-pdf me-1"></i> PDF ডাউনলোড
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="downloadAsImage()">
+                        <i class="las la-image me-1"></i> ছবি ডাউনলোড
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Current voter ID for slip download
+let currentVoterId = null;
+let currentVoterData = null;
+
+// Voter Detail Modal
+function showVoterDetail(id, serial, name, voterNo, gender, father, mother, dob, address, category) {
+    currentVoterId = id;
+    currentVoterData = { serial, name, voterNo, gender, father, mother, dob, address, category };
+    
+    document.getElementById('modal-serial').textContent = serial;
+    document.getElementById('modal-name').textContent = name;
+    document.getElementById('modal-voter-no').textContent = voterNo;
+    
+    let genderHtml = gender;
+    if (gender === 'male') {
+        genderHtml = '<span class="badge-gender male">পুরুষ</span>';
+    } else if (gender === 'female') {
+        genderHtml = '<span class="badge-gender female">মহিলা</span>';
+    }
+    document.getElementById('modal-gender').innerHTML = genderHtml;
+    
+    document.getElementById('modal-father').textContent = father;
+    document.getElementById('modal-mother').textContent = mother;
+    document.getElementById('modal-dob').textContent = dob;
+    document.getElementById('modal-address').textContent = address;
+    document.getElementById('modal-category').textContent = category;
+}
+
+function downloadFromModal() {
+    if (currentVoterId) {
+        const detailModal = bootstrap.Modal.getInstance(document.getElementById('voterModal'));
+        if (detailModal) detailModal.hide();
+        showSlipModal(currentVoterId);
+    }
+}
+
+// Voter Slip Modal
+async function showSlipModal(voterId) {
+    currentVoterId = voterId;
+    
+    try {
+        const response = await fetch(`{% url 'public_search:voter_slip' 0 %}`.replace('0', voterId));
+        const data = await response.json();
+        
+        document.getElementById('slip-serial').textContent = data.serial;
+        document.getElementById('slip-name').textContent = data.name;
+        document.getElementById('slip-voter-no').textContent = data.voter_no;
+        document.getElementById('slip-father').textContent = data.father;
+        document.getElementById('slip-mother').textContent = data.mother;
+        document.getElementById('slip-gender').textContent = data.gender;
+        document.getElementById('slip-dob').textContent = data.dob;
+        document.getElementById('slip-address').textContent = data.address;
+        document.getElementById('slip-category').textContent = data.category;
+        
+        currentVoterData = data;
+        
+        const slipModal = new bootstrap.Modal(document.getElementById('slipModal'));
+        slipModal.show();
+    } catch (error) {
+        console.error('Error fetching voter data:', error);
+        alert('Error loading voter information. Please try again.');
+    }
+}
+
+// Download as PDF
+async function downloadAsPDF() {
+    const element = document.getElementById('voterSlipContent');
+    
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        const x = (210 - imgWidth) / 2;
+        const y = 20;
+        
+        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+        
+        const filename = currentVoterData ? 
+            `voter_slip_${currentVoterData.voter_no || currentVoterId}.pdf` : 
+            `voter_slip_${currentVoterId}.pdf`;
+        
+        pdf.save(filename);
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Error generating PDF. Please try again.');
+    }
+}
+
+// Download as Image
+async function downloadAsImage() {
+    const element = document.getElementById('voterSlipContent');
+    
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+        
+        const link = document.createElement('a');
+        link.download = currentVoterData ? 
+            `voter_slip_${currentVoterData.voter_no || currentVoterId}.png` : 
+            `voter_slip_${currentVoterId}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Error generating image. Please try again.');
+    }
+}
+
+// Dependent Category Dropdowns
+const API_URL = '{% url "public_search:api_categories" %}';
+const upazilaSelect = document.getElementById('upazilaSelect');
+const unionSelect = document.getElementById('unionSelect');
+const voterAreaSelect = document.getElementById('voterAreaSelect');
+
+async function fetchCategories(parentId) {
+    try {
+        const response = await fetch(`${API_URL}?parent_id=${parentId}`);
+        const data = await response.json();
+        return data.categories || [];
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+    }
+}
+
+function populateDropdown(selectElement, categories, placeholder) {
+    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = cat.name + (cat.code ? ` (${cat.code})` : '');
+        selectElement.appendChild(option);
+    });
+    selectElement.disabled = categories.length === 0;
+}
+
+function resetDropdowns(...selects) {
+    selects.forEach(select => {
+        select.innerHTML = '<option value="">-- Select --</option>';
+        select.disabled = true;
+    });
+}
+
+upazilaSelect.addEventListener('change', async function() {
+    const upazilaId = this.value;
+    resetDropdowns(unionSelect, voterAreaSelect);
+    if (!upazilaId) return;
+    
+    const unions = await fetchCategories(upazilaId);
+    populateDropdown(unionSelect, unions, '-- Select Union --');
+});
+
+unionSelect.addEventListener('change', async function() {
+    const unionId = this.value;
+    resetDropdowns(voterAreaSelect);
+    if (!unionId) return;
+    
+    const voterAreas = await fetchCategories(unionId);
+    populateDropdown(voterAreaSelect, voterAreas, '-- Select Voter Area --');
+});
+
+// Auto Suggestion for Name Fields
+const SUGGESTIONS_API_URL = '{% url "public_search:api_suggestions" %}';
+
+class AutoSuggest {
+    constructor(inputId, dropdownId) {
+        this.input = document.getElementById(inputId);
+        this.dropdown = document.getElementById(dropdownId);
+        this.field = this.input?.dataset.field || 'name';
+        this.debounceTimer = null;
+        this.selectedIndex = -1;
+        this.suggestions = [];
+        
+        if (this.input && this.dropdown) {
+            this.init();
+        }
+    }
+    
+    init() {
+        this.input.addEventListener('input', () => {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
+        });
+        
+        this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
+        
+        this.input.addEventListener('focus', () => {
+            if (this.input.value.trim().length >= 2 && this.suggestions.length > 0) {
+                this.showDropdown();
+            }
+        });
+        
+        this.input.addEventListener('blur', () => {
+            setTimeout(() => this.hideDropdown(), 150);
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
+                this.hideDropdown();
+            }
+        });
+    }
+    
+    async fetchSuggestions() {
+        const query = this.input.value.trim();
+        
+        if (query.length < 2) {
+            this.hideDropdown();
+            return;
+        }
+        
+        const upazila = document.getElementById('upazilaSelect')?.value || '';
+        const union = document.getElementById('unionSelect')?.value || '';
+        const voterArea = document.getElementById('voterAreaSelect')?.value || '';
+        
+        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm text-primary"></span> <span class="ms-2">Searching...</span></div>';
+        this.showDropdown();
+        
+        try {
+            const params = new URLSearchParams({
+                q: query,
+                field: this.field,
+                upazila: upazila,
+                union: union,
+                voter_area: voterArea,
+                limit: 10
+            });
+            
+            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`);
+            const data = await response.json();
+            
+            this.suggestions = data.suggestions || [];
+            this.renderSuggestions(query);
+        } catch (error) {
+            console.error('Auto-suggest error:', error);
+            this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-exclamation-circle me-1"></i> Error loading suggestions</div>';
+        }
+    }
+    
+    renderSuggestions(query) {
+        this.selectedIndex = -1;
+        
+        if (this.suggestions.length === 0) {
+            this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-search me-1"></i> No suggestions found</div>';
+            return;
+        }
+        
+        const queryLower = query.toLowerCase();
+        const fieldIcon = this.getFieldIcon();
+        
+        this.dropdown.innerHTML = this.suggestions.map((item, index) => {
+            const text = item.text;
+            const highlighted = this.highlightMatch(text, queryLower);
+            return `<div class="autosuggest-item" data-index="${index}">
+                <i class="las ${fieldIcon}"></i>
+                <span>${highlighted}</span>
+            </div>`;
+        }).join('');
+        
+        this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, index) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.selectSuggestion(index);
+            });
+            item.addEventListener('mouseenter', () => this.updateSelection(index));
+        });
+    }
+    
+    getFieldIcon() {
+        switch(this.field) {
+            case 'name': return 'la-user';
+            case 'father': return 'la-male';
+            case 'mother': return 'la-female';
+            case 'address': return 'la-map-marker';
+            default: return 'la-search';
+        }
+    }
+    
+    highlightMatch(text, query) {
+        if (!text || !query) return this.escapeHtml(text || '');
+        const escaped = this.escapeHtml(text);
+        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+        return escaped.replace(regex, '<mark>$1</mark>');
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    handleKeydown(e) {
+        if (!this.dropdown.classList.contains('show')) return;
+        
+        const items = this.dropdown.querySelectorAll('.autosuggest-item');
+        
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
+                this.updateSelection(this.selectedIndex);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+                this.updateSelection(this.selectedIndex);
+                break;
+            case 'Enter':
+                if (this.selectedIndex >= 0 && this.suggestions[this.selectedIndex]) {
+                    e.preventDefault();
+                    this.selectSuggestion(this.selectedIndex);
+                }
+                break;
+            case 'Escape':
+                this.hideDropdown();
+                break;
+        }
+    }
+    
+    updateSelection(index) {
+        this.selectedIndex = index;
+        this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+        });
+    }
+    
+    selectSuggestion(index) {
+        if (this.suggestions[index]) {
+            this.input.value = this.suggestions[index].text;
+            this.hideDropdown();
+            this.input.focus();
+        }
+    }
+    
+    showDropdown() {
+        this.dropdown.classList.add('show');
+    }
+    
+    hideDropdown() {
+        this.dropdown.classList.remove('show');
+        this.selectedIndex = -1;
+    }
+}
+
+// Initialize auto-suggest
+new AutoSuggest('nameInput', 'nameDropdown');
+new AutoSuggest('fatherInput', 'fatherDropdown');
+new AutoSuggest('motherInput', 'motherDropdown');
+new AutoSuggest('addressInput', 'addressDropdown');
+</script>
+{% endblock %}

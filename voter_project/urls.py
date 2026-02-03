@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.core.urls')),
     path('voters/', include('apps.voters.urls')),
+    path('search/', include('apps.voters.public_urls')),  # Public Advanced Voter Search
 ]
 
 # Serve media files in both development and production
