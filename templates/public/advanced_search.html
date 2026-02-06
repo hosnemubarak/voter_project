@@ -563,29 +563,94 @@ async function downloadAsPDF() {
     const element = document.getElementById('voterSlipContent');
     
     try {
+        // Temporarily expand the slip for full capture
+        const originalMaxWidth = element.style.maxWidth;
+        const originalOverflow = element.style.overflow;
+        element.style.maxWidth = 'none';
+        element.style.overflow = 'visible';
+        
+        // Ensure all images are loaded before capture
+        const images = element.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve;
+            });
+        }));
+        
         const canvas = await html2canvas(element, {
-            scale: 2,
+            scale: 3,
             useCORS: true,
-            backgroundColor: '#ffffff'
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
         });
         
+        // Restore original styles
+        element.style.maxWidth = originalMaxWidth;
+        element.style.overflow = originalOverflow;
+        
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
         
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 190;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
         
-        const x = (210 - imgWidth) / 2;
-        const y = 20;
+        // Calculate PDF dimensions to fit content
+        const pdfWidth = 210; // A4 width in mm
+        const pdfHeight = 297; // A4 height in mm
+        const margin = 10;
+        const contentWidth = pdfWidth - (margin * 2);
+        const contentHeight = (canvasHeight * contentWidth) / canvasWidth;
         
-        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-        
-        const filename = currentVoterData ? 
-            `voter_slip_${currentVoterData.voter_no || currentVoterId}.pdf` : 
-            `voter_slip_${currentVoterId}.pdf`;
-        
-        pdf.save(filename);
+        // If content fits on one page, center it vertically
+        if (contentHeight <= (pdfHeight - margin * 2)) {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const x = margin;
+            const y = (pdfHeight - contentHeight) / 2;
+            pdf.addImage(imgData, 'PNG', x, y, contentWidth, contentHeight);
+            
+            const filename = currentVoterData ? 
+                `voter_slip_${currentVoterData.voter_no || currentVoterId}.pdf` : 
+                `voter_slip_${currentVoterId}.pdf`;
+            pdf.save(filename);
+        } else {
+            // Multi-page: split the canvas across pages
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageContentHeight = pdfHeight - (margin * 2);
+            const totalPages = Math.ceil(contentHeight / pageContentHeight);
+            
+            for (let page = 0; page < totalPages; page++) {
+                if (page > 0) pdf.addPage();
+                
+                // Calculate source crop from canvas for this page
+                const srcY = (page * pageContentHeight * canvasWidth) / contentWidth;
+                const srcH = (pageContentHeight * canvasWidth) / contentWidth;
+                const actualSrcH = Math.min(srcH, canvasHeight - srcY);
+                
+                // Create a temporary canvas for this page slice
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = canvasWidth;
+                pageCanvas.height = actualSrcH;
+                const ctx = pageCanvas.getContext('2d');
+                ctx.drawImage(canvas, 0, srcY, canvasWidth, actualSrcH, 0, 0, canvasWidth, actualSrcH);
+                
+                const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+                const pageImgHeight = (actualSrcH * contentWidth) / canvasWidth;
+                
+                pdf.addImage(pageImgData, 'PNG', margin, margin, contentWidth, pageImgHeight);
+            }
+            
+            const filename = currentVoterData ? 
+                `voter_slip_${currentVoterData.voter_no || currentVoterId}.pdf` : 
+                `voter_slip_${currentVoterId}.pdf`;
+            pdf.save(filename);
+        }
     } catch (error) {
         console.error('Error generating PDF:', error);
         alert('Error generating PDF. Please try again.');
@@ -597,17 +662,43 @@ async function downloadAsImage() {
     const element = document.getElementById('voterSlipContent');
     
     try {
+        // Temporarily expand the slip for full capture
+        const originalMaxWidth = element.style.maxWidth;
+        const originalOverflow = element.style.overflow;
+        element.style.maxWidth = 'none';
+        element.style.overflow = 'visible';
+        
+        // Ensure all images are loaded before capture
+        const images = element.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve;
+            });
+        }));
+        
         const canvas = await html2canvas(element, {
-            scale: 2,
+            scale: 3,
             useCORS: true,
-            backgroundColor: '#ffffff'
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
         });
+        
+        // Restore original styles
+        element.style.maxWidth = originalMaxWidth;
+        element.style.overflow = originalOverflow;
         
         const link = document.createElement('a');
         link.download = currentVoterData ? 
             `voter_slip_${currentVoterData.voter_no || currentVoterId}.png` : 
             `voter_slip_${currentVoterId}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     } catch (error) {
         console.error('Error generating image:', error);
