@@ -1,5 +1,5 @@
 {% extends 'voters/base_voters.html' %}
-{% load humanize pagination_tags %}
+{% load humanize %}
 
 {% block content %}
 <!-- Page Title -->
@@ -372,7 +372,41 @@
         </div>
 
         <!-- Pagination -->
-        {% render_pagination page_obj %}
+        <div class="p-3 border-top">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-modern justify-content-center mb-0 flex-wrap">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&{{ request.GET.urlencode }}" title="First">
+                            <i class="las la-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" title="Previous">
+                            <i class="las la-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" title="Next">
+                            <i class="las la-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" title="Last">
+                            <i class="las la-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
         {% else %}
         <div class="empty-state">
             <div class="empty-icon">
@@ -646,19 +680,7 @@ function renderResults(voters, query) {
             </div>
         `;
         
-        // Touch events for mobile
-        item.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            selectResult(voter);
-        }, { passive: false });
-        
-        // Click for desktop
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            selectResult(voter);
-        });
-        
+        item.addEventListener('click', () => selectResult(voter));
         item.addEventListener('mouseenter', () => updateSelection(index));
         
         resultsContainer.appendChild(item);
@@ -721,32 +743,10 @@ searchInput.addEventListener('focus', function() {
     }
 });
 
-// Track touch state for mobile
-let isTouchingDropdown = false;
-
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.search-container')) {
         hideDropdown();
     }
-});
-
-// Prevent dropdown close during touch on mobile
-dropdown.addEventListener('touchstart', () => {
-    isTouchingDropdown = true;
-}, { passive: true });
-
-dropdown.addEventListener('touchend', () => {
-    setTimeout(() => { isTouchingDropdown = false; }, 100);
-}, { passive: true });
-
-// Handle blur with mobile-friendly delay
-searchInput.addEventListener('blur', function() {
-    const delay = 'ontouchstart' in window ? 300 : 150;
-    setTimeout(() => {
-        if (!isTouchingDropdown) {
-            hideDropdown();
-        }
-    }, delay);
 });
 
 clearBtn.addEventListener('click', function() {
@@ -759,7 +759,6 @@ clearBtn.addEventListener('click', function() {
 function hideDropdown() {
     dropdown.classList.remove('show');
     selectedIndex = -1;
-    isTouchingDropdown = false;
 }
 
 function escapeHtml(text) {
@@ -786,8 +785,6 @@ class AutoSuggest {
         this.debounceTimer = null;
         this.selectedIndex = -1;
         this.suggestions = [];
-        this.isLoading = false;
-        this.abortController = null;
         
         if (this.input && this.dropdown) {
             this.init();
@@ -795,51 +792,28 @@ class AutoSuggest {
     }
     
     init() {
-        // Track if touch/pointer is active on dropdown (for mobile)
-        this.isSelectingItem = false;
-        
         // Input event with debouncing
         this.input.addEventListener('input', () => {
             clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
+            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 300);
         });
         
         // Keyboard navigation
         this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
         
-        // Focus event - show dropdown if we have cached suggestions
+        // Focus event
         this.input.addEventListener('focus', () => {
             if (this.input.value.trim().length >= 2 && this.suggestions.length > 0) {
                 this.showDropdown();
             }
         });
         
-        // Blur event - hide dropdown with delay for touch/click handling on mobile
-        this.input.addEventListener('blur', (e) => {
-            // Longer delay on mobile to ensure touch events complete
-            const delay = 'ontouchstart' in window ? 300 : 150;
-            setTimeout(() => {
-                if (!this.isSelectingItem && !this.dropdown.contains(document.activeElement)) {
-                    this.hideDropdown();
-                }
-            }, delay);
-        });
-        
-        // Close on outside click/touch
+        // Close on outside click
         document.addEventListener('click', (e) => {
             if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
                 this.hideDropdown();
             }
         });
-        
-        // Prevent dropdown from closing when touching it on mobile
-        this.dropdown.addEventListener('touchstart', () => {
-            this.isSelectingItem = true;
-        }, { passive: true });
-        
-        this.dropdown.addEventListener('touchend', () => {
-            setTimeout(() => { this.isSelectingItem = false; }, 100);
-        }, { passive: true });
     }
     
     async fetchSuggestions() {
@@ -850,20 +824,13 @@ class AutoSuggest {
             return;
         }
         
-        // Cancel previous request if still pending
-        if (this.abortController) {
-            this.abortController.abort();
-        }
-        this.abortController = new AbortController();
-        
         // Get current category filters
         const upazila = document.getElementById('upazilaSelect')?.value || '';
         const union = document.getElementById('unionSelect')?.value || '';
         const voterArea = document.getElementById('voterAreaSelect')?.value || '';
         
         // Show loading
-        this.isLoading = true;
-        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm text-primary"></span> <span class="ms-2">Searching...</span></div>';
+        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm"></span> Loading...</div>';
         this.showDropdown();
         
         try {
@@ -876,22 +843,14 @@ class AutoSuggest {
                 limit: 10
             });
             
-            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`, {
-                signal: this.abortController.signal
-            });
+            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`);
             const data = await response.json();
             
-            this.isLoading = false;
             this.suggestions = data.suggestions || [];
             this.renderSuggestions(query);
         } catch (error) {
-            if (error.name === 'AbortError') {
-                // Request was cancelled, ignore
-                return;
-            }
             console.error('Auto-suggest error:', error);
-            this.isLoading = false;
-            this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-exclamation-circle me-1"></i> Error loading suggestions</div>';
+            this.dropdown.innerHTML = '<div class="autosuggest-empty">Error loading suggestions</div>';
         }
     }
     
@@ -918,22 +877,11 @@ class AutoSuggest {
         
         // Add click and touch handlers for better mobile support
         this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, index) => {
-            // Touch events for mobile - use touchend for reliable selection
-            item.addEventListener('touchend', (e) => {
+            // Use pointerdown for immediate feedback on mobile
+            item.addEventListener('pointerdown', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                this.isSelectingItem = false;
-                this.selectSuggestion(index);
-            }, { passive: false });
-            
-            // Click for desktop
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
                 this.selectSuggestion(index);
             });
-            
-            // Hover for desktop
             item.addEventListener('mouseenter', () => this.updateSelection(index));
         });
     }
@@ -1089,34 +1037,5 @@ window.addEventListener('scroll', function() {
         dropdown.classList.remove('show');
     });
 }, { passive: true });
-
-// ============================================
-// Persist Advanced Filters collapse state
-// ============================================
-(function() {
-    const FILTER_STATE_KEY = 'voterListFilterExpanded';
-    const filterCollapse = document.getElementById('filterCollapse');
-    const filterHeader = document.querySelector('[data-bs-target="#filterCollapse"]');
-    
-    if (!filterCollapse || !filterHeader) return;
-    
-    // Restore state on page load
-    const savedState = localStorage.getItem(FILTER_STATE_KEY);
-    if (savedState === 'true') {
-        // Use Bootstrap's Collapse API to show
-        filterCollapse.classList.add('show');
-        filterHeader.setAttribute('aria-expanded', 'true');
-    }
-    
-    // Save state when collapse is shown
-    filterCollapse.addEventListener('shown.bs.collapse', function() {
-        localStorage.setItem(FILTER_STATE_KEY, 'true');
-    });
-    
-    // Save state when collapse is hidden
-    filterCollapse.addEventListener('hidden.bs.collapse', function() {
-        localStorage.setItem(FILTER_STATE_KEY, 'false');
-    });
-})();
 </script>
 {% endblock %}
