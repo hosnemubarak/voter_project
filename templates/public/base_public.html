@@ -77,8 +77,8 @@
             z-index: 1;
         }
         .header-logo {
-            width: 90px;
-            height: 90px;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
             background: #fff;
             border-radius: 16px;
@@ -109,7 +109,7 @@
             font-size: 14px;
             position: relative;
             z-index: 1;
-            background: rgba(255,255,255,0.1);
+            /* background: rgba(255,255,255,0.1); */
             display: inline-block;
             padding: 8px 20px;
             border-radius: 20px;
@@ -128,14 +128,32 @@
                 text-align: center;
             }
             .header-logo {
-                width: 70px;
-                height: 70px;
+                width: 90px;
+                height: 90px;
             }
             .header-title {
                 font-size: 24px;
             }
             .header-subtitle {
                 font-size: 14px;
+            }
+        }
+        
+        /* Slip Banner in Voter Slip */
+        .slip-banner-wrapper {
+            margin: -24px -24px 16px -24px;
+            line-height: 0;
+        }
+        .slip-banner-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+            border-radius: 10px 10px 0 0;
+        }
+        @media (max-width: 576px) {
+            .slip-banner-wrapper {
+                margin: -16px -16px 12px -16px;
             }
         }
         
