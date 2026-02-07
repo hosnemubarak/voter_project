@@ -30,70 +30,68 @@
         <form method="get" action="" id="searchForm" class="mt-3">
             
             <!-- Category Hierarchy / এলাকা নির্বাচন -->
-            <div class="mb-4 p-3 bg-light rounded">
-                <h6 class="mb-3 text-primary"><i class="las la-map-marker me-2"></i>এলাকা নির্বাচন</h6>
+            <div class="filter-section">
+                <div class="filter-section-title"><i class="las la-map-marker"></i> এলাকা নির্বাচন</div>
                 <div class="row g-3">
                     <!-- Upazila / উপজেলা -->
-                    <div class="col-md-6 col-lg-4">
-                        <label class="form-label fw-semibold">উপজেলা</label>
-                        <div class="position-relative">
-                            <select class="form-select" name="upazila" id="upazilaSelect">
-                                <option value="">-- উপজেলা নির্বাচন করুন --</option>
-                                {% for upazila in upazilas %}
-                                <option value="{{ upazila.id }}" {% if selected_upazila == upazila.id|stringformat:"i" %}selected{% endif %}>{{ upazila.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="col-6">
+                        <label class="form-label">উপজেলা</label>
+                        <select class="form-select" name="upazila" id="upazilaSelect">
+                            <option value="">সকল উপজেলা</option>
+                            {% for upazila in upazilas %}
+                            <option value="{{ upazila.id }}" {% if selected_upazila == upazila.id|stringformat:"i" %}selected{% endif %}>{{ upazila.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     
                     <!-- Union / ইউনিয়ন -->
-                    <div class="col-md-6 col-lg-4">
-                        <label class="form-label fw-semibold">ইউনিয়ন</label>
-                        <div class="position-relative">
-                            <select class="form-select" name="union" id="unionSelect" {% if not selected_upazila %}disabled{% endif %}>
-                                <option value="">-- ইউনিয়ন নির্বাচন করুন --</option>
-                                {% for union in unions %}
-                                <option value="{{ union.id }}" {% if selected_union == union.id|stringformat:"i" %}selected{% endif %}>{{ union.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Voter Area / ভোটার এলাকা -->
-                    <div class="col-md-6 col-lg-4">
-                        <label class="form-label fw-semibold">ভোটার এলাকা</label>
-                        <div class="position-relative">
-                            <select class="form-select" name="voter_area" id="voterAreaSelect" {% if not selected_union %}disabled{% endif %}>
-                                <option value="">-- এলাকা নির্বাচন করুন --</option>
-                                {% for area in voter_areas %}
-                                <option value="{{ area.id }}" {% if selected_voter_area == area.id|stringformat:"i" %}selected{% endif %}>{{ area.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="col-6">
+                        <label class="form-label">ইউনিয়ন</label>
+                        <select class="form-select" name="union" id="unionSelect" {% if not selected_upazila %}disabled{% endif %}>
+                            <option value="">সকল ইউনিয়ন</option>
+                            {% for union in unions %}
+                            <option value="{{ union.id }}" {% if selected_union == union.id|stringformat:"i" %}selected{% endif %}>{{ union.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
+                
+                <!-- Voter Area / ভোটার এলাকা (hidden from UI, kept for backend) -->
+                {% comment %}
+                <div class="col-md-6 col-lg-4">
+                    <label class="form-label fw-semibold">ভোটার এলাকা</label>
+                    <div class="position-relative">
+                        <select class="form-select" name="voter_area" id="voterAreaSelect" {% if not selected_union %}disabled{% endif %}>
+                            <option value="">-- এলাকা নির্বাচন করুন --</option>
+                            {% for area in voter_areas %}
+                            <option value="{{ area.id }}" {% if selected_voter_area == area.id|stringformat:"i" %}selected{% endif %}>{{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                {% endcomment %}
             </div>
             
             <!-- Voter Information Filters / ভোটার তথ্য -->
-            <div class="mb-4">
-                <h6 class="mb-3 text-primary"><i class="las la-user me-2"></i>ভোটার তথ্য</h6>
+            <div class="filter-section">
+                <div class="filter-section-title"><i class="las la-user"></i> ভোটার তথ্য</div>
                 <div class="row g-3">
                     <!-- Name / নাম -->
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-6">
                         <label class="form-label">নাম</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
-                                   value="{{ name_query }}" placeholder="নাম লিখুন..." 
+                                   value="{{ name_query }}" placeholder="ভোটারের নাম লিখুন..." 
                                    data-field="name" autocomplete="off">
                             <div class="autosuggest-dropdown" id="nameDropdown"></div>
                         </div>
                     </div>
                     
                     <!-- Date of Birth / জন্ম তারিখ -->
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-6">
                         <label class="form-label">জন্ম তারিখ</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="dobDisplay" placeholder="তারিখ নির্বাচন করুন..." readonly>
+                            <input type="text" class="form-control" id="dobDisplay" placeholder="তারিখ বাছুন..." readonly>
                             <input type="hidden" name="dob" id="dobHidden" value="{{ dob_query }}">
                             <button class="btn btn-outline-secondary" type="button" id="dobClearBtn" title="মুছুন" style="display:none;">
                                 <i class="las la-times"></i>
@@ -102,41 +100,29 @@
                     </div>
                     
                     <!-- Father Name / পিতার নাম -->
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-6">
                         <label class="form-label">পিতার নাম</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
-                                   value="{{ father_query }}" placeholder="পিতার নাম লিখুন..." 
+                                   value="{{ father_query }}" placeholder="পিতার নাম..." 
                                    data-field="father" autocomplete="off">
                             <div class="autosuggest-dropdown" id="fatherDropdown"></div>
                         </div>
                     </div>
                     
                     <!-- Mother Name / মাতার নাম -->
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-6">
                         <label class="form-label">মাতার নাম</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
-                                   value="{{ mother_query }}" placeholder="মাতার নাম লিখুন..." 
+                                   value="{{ mother_query }}" placeholder="মাতার নাম..." 
                                    data-field="mother" autocomplete="off">
                             <div class="autosuggest-dropdown" id="motherDropdown"></div>
                         </div>
                     </div>
                     
-                    <!-- Voter No / ভোটার নং -->
-                    <div class="col-md-6 col-lg-4">
-                        <label class="form-label">ভোটার নং</label>
-                        <input type="text" class="form-control" name="voter_no" value="{{ voter_no_query }}" placeholder="ভোটার নং লিখুন...">
-                    </div>
-                    
-                    <!-- Serial No / ক্রমিক নং -->
-                    <div class="col-md-6 col-lg-4">
-                        <label class="form-label">ক্রমিক নং</label>
-                        <input type="text" class="form-control" name="serial" value="{{ serial_query }}" placeholder="ক্রমিক নং লিখুন...">
-                    </div>
-                    
                     <!-- Gender / লিঙ্গ -->
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-6">
                         <label class="form-label">লিঙ্গ</label>
                         <select class="form-select" name="gender">
                             <option value="all" {% if selected_gender == 'all' or not selected_gender %}selected{% endif %}>সকল</option>
@@ -144,33 +130,48 @@
                             <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>মহিলা</option>
                         </select>
                     </div>
-                    
-                    <!-- Address / ঠিকানা -->
-                    <div class="col-12">
-                        <label class="form-label">ঠিকানা</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="address" id="addressInput" 
-                                   value="{{ address_query }}" placeholder="ঠিকানা লিখুন..." 
-                                   data-field="address" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="addressDropdown"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
             
+            <!-- Commented out filters (backend logic preserved) -->
+            {% comment %}
+            <!-- Voter No / ভোটার নং -->
+            <div class="col-md-6 col-lg-4">
+                <label class="form-label">ভোটার নং</label>
+                <input type="text" class="form-control" name="voter_no" value="{{ voter_no_query }}" placeholder="ভোটার নং লিখুন...">
+            </div>
+            
+            <!-- Serial No / ক্রমিক নং -->
+            <div class="col-md-6 col-lg-4">
+                <label class="form-label">ক্রমিক নং</label>
+                <input type="text" class="form-control" name="serial" value="{{ serial_query }}" placeholder="ক্রমিক নং লিখুন...">
+            </div>
+            
+            <!-- Address / ঠিকানা -->
+            <div class="col-12">
+                <label class="form-label">ঠিকানা</label>
+                <div class="autosuggest-wrapper">
+                    <input type="text" class="form-control autosuggest-input" name="address" id="addressInput" 
+                           value="{{ address_query }}" placeholder="ঠিকানা লিখুন..." 
+                           data-field="address" autocomplete="off">
+                    <div class="autosuggest-dropdown" id="addressDropdown"></div>
+                </div>
+            </div>
+            {% endcomment %}
+            
             <!-- Action Buttons / অ্যাকশন বাটন -->
-            <div class="filter-actions d-flex flex-wrap gap-2">
-                <button type="submit" class="btn btn-primary btn-modern" id="searchBtn">
-                    <i class="las la-search me-1"></i> খুঁজুন
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary btn-search" id="searchBtn">
+                    <i class="las la-search me-2"></i> খুঁজুন
                 </button>
-                <a href="{% url 'public_search:advanced_search' %}" class="btn btn-outline-secondary btn-modern">
+                <a href="{% url 'public_search:advanced_search' %}" class="btn btn-outline-secondary btn-reset">
                     <i class="las la-redo-alt me-1"></i> মুছুন
                 </a>
                 {% if has_filters and page_obj %}
-                <span class="text-muted small align-self-center ms-auto">
-                    <i class="las la-info-circle me-1"></i>
-                    <strong>{{ page_obj.paginator.count|intcomma }}</strong> ভোটার পাওয়া গেছে
-                </span>
+                <div class="filter-result-count">
+                    <i class="las la-check-circle"></i>
+                    <strong>{{ page_obj.paginator.count|intcomma }}</strong> জন পাওয়া গেছে
+                </div>
                 {% endif %}
             </div>
         </form>
@@ -815,7 +816,7 @@ function populateDropdown(selectElement, categories, placeholder) {
 }
 
 function resetDropdowns(...selects) {
-    selects.forEach(select => {
+    selects.filter(Boolean).forEach(select => {
         select.innerHTML = '<option value="">-- Select --</option>';
         select.disabled = true;
     });
@@ -827,7 +828,7 @@ upazilaSelect.addEventListener('change', async function() {
     if (!upazilaId) return;
     
     const unions = await fetchCategories(upazilaId);
-    populateDropdown(unionSelect, unions, '-- Select Union --');
+    populateDropdown(unionSelect, unions, 'সকল ইউনিয়ন');
 });
 
 unionSelect.addEventListener('change', async function() {
@@ -835,8 +836,11 @@ unionSelect.addEventListener('change', async function() {
     resetDropdowns(voterAreaSelect);
     if (!unionId) return;
     
-    const voterAreas = await fetchCategories(unionId);
-    populateDropdown(voterAreaSelect, voterAreas, '-- Select Voter Area --');
+    // Voter area dropdown is currently hidden from UI
+    if (voterAreaSelect) {
+        const voterAreas = await fetchCategories(unionId);
+        populateDropdown(voterAreaSelect, voterAreas, 'সকল ভোটার এলাকা');
+    }
 });
 
 // Auto Suggestion for Name Fields
@@ -1030,6 +1034,7 @@ class AutoSuggest {
 new AutoSuggest('nameInput', 'nameDropdown');
 new AutoSuggest('fatherInput', 'fatherDropdown');
 new AutoSuggest('motherInput', 'motherDropdown');
-new AutoSuggest('addressInput', 'addressDropdown');
+// AutoSuggest for address is commented out (field hidden from UI)
+// new AutoSuggest('addressInput', 'addressDropdown');
 </script>
 {% endblock %}

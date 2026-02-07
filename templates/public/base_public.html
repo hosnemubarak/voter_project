@@ -301,6 +301,86 @@
             padding: 16px 20px;
             background: #f8fafc;
             border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Filter Section Blocks */
+        .filter-section {
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e9edf2;
+        }
+        .filter-section:last-of-type {
+            margin-bottom: 0;
+        }
+        .filter-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #006A4E;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-section-title i {
+            font-size: 16px;
+        }
+
+        /* Search & Reset Buttons */
+        .btn-search {
+            flex: 1 1 auto;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+            background: linear-gradient(135deg, #006A4E 0%, #00503b 100%);
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 106, 78, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-search:hover {
+            background: linear-gradient(135deg, #00503b 0%, #003d2d 100%);
+            box-shadow: 0 6px 16px rgba(0, 106, 78, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-reset {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .filter-result-count {
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            color: #006A4E;
+            background: rgba(0, 106, 78, 0.08);
+            padding: 8px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        @media (max-width: 576px) {
+            .filter-section {
+                padding: 14px 12px;
+                margin-bottom: 12px;
+            }
+            .filter-actions {
+                flex-direction: column;
+            }
+            .btn-search, .btn-reset {
+                width: 100%;
+                text-align: center;
+            }
         }
 
         /* Modern Table */
