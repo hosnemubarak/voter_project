@@ -57,6 +57,7 @@ def advanced_voter_search(request):
     mother_query = request.GET.get('mother', '').strip()
     voter_no_query = request.GET.get('voter_no', '').strip()
     serial_query = request.GET.get('serial', '').strip()
+    dob_query = request.GET.get('dob', '').strip()
     gender = request.GET.get('gender', '')
     
     # Hierarchical category filters
@@ -93,6 +94,21 @@ def advanced_voter_search(request):
     if serial_query:
         voters = voters.filter(serial__icontains=serial_query)
     
+    if dob_query:
+        # Validate: only allow digits (Bangla/English), slashes, dashes, dots
+        dob_clean = re.sub(r'[^0-9০-৯/\-.]', '', dob_query)
+        if dob_clean:
+            # Convert between Bangla and English digits for DOB search
+            bangla_digits = str.maketrans('0123456789', '০১২৩৪৫৬৭৮৯')
+            english_digits = str.maketrans('০১২৩৪৫৬৭৮৯', '0123456789')
+            dob_bangla = dob_clean.translate(bangla_digits)
+            dob_english = dob_clean.translate(english_digits)
+            voters = voters.filter(
+                Q(dob__icontains=dob_clean) |
+                Q(dob__icontains=dob_bangla) |
+                Q(dob__icontains=dob_english)
+            )
+    
     if address_query:
         voters = voters.filter(address__icontains=address_query)
 
@@ -114,7 +130,7 @@ def advanced_voter_search(request):
     # Check if any filter is applied
     has_filters = any([
         search_query, name_query, father_query, mother_query,
-        voter_no_query, serial_query, address_query,
+        voter_no_query, serial_query, dob_query, address_query,
         upazila_id, union_id, voter_area_id, gender and gender != 'all'
     ])
 
@@ -151,6 +167,7 @@ def advanced_voter_search(request):
         'mother_query': mother_query,
         'voter_no_query': voter_no_query,
         'serial_query': serial_query,
+        'dob_query': dob_query,
         'address_query': address_query,
         'selected_upazila': upazila_id,
         'selected_union': union_id,

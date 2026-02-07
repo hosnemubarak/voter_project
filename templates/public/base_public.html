@@ -14,6 +14,8 @@
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
     <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+    <!-- Flatpickr Datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
     {% block extra_css %}{% endblock %}
 
@@ -41,7 +43,7 @@
         
         /* Professional Page Header - Bangladesh Green Theme */
         .page-header-card {
-            background: linear-gradient(180deg, #006A4E 0%, #00856B 50%, #00A085 100%);
+            background:#006A4E;
             border-radius: 16px;
             padding: 32px;
             box-shadow: 0 10px 40px rgba(0, 106, 78, 0.3);
@@ -749,6 +751,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

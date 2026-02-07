@@ -23,7 +23,7 @@
 <!-- Filters / ফিল্টার -->
 <div class="filter-panel mb-4">
     <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true">
-        <h6><i class="las la-filter me-2"></i>ভোটার খুঁজুন / Search Voter</h6>
+        <h6><i class="las la-filter me-2"></i>ভোটার খুঁজুন</h6>
         <i class="las la-chevron-down fs-4"></i>
     </div>
     <div class="collapse show" id="filterCollapse">
@@ -31,11 +31,11 @@
             
             <!-- Category Hierarchy / এলাকা নির্বাচন -->
             <div class="mb-4 p-3 bg-light rounded">
-                <h6 class="mb-3 text-primary"><i class="las la-map-marker me-2"></i>এলাকা নির্বাচন / Select Area</h6>
+                <h6 class="mb-3 text-primary"><i class="las la-map-marker me-2"></i>এলাকা নির্বাচন</h6>
                 <div class="row g-3">
                     <!-- Upazila / উপজেলা -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label fw-semibold">উপজেলা / Upazila</label>
+                        <label class="form-label fw-semibold">উপজেলা</label>
                         <div class="position-relative">
                             <select class="form-select" name="upazila" id="upazilaSelect">
                                 <option value="">-- উপজেলা নির্বাচন করুন --</option>
@@ -48,7 +48,7 @@
                     
                     <!-- Union / ইউনিয়ন -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label fw-semibold">ইউনিয়ন / Union</label>
+                        <label class="form-label fw-semibold">ইউনিয়ন</label>
                         <div class="position-relative">
                             <select class="form-select" name="union" id="unionSelect" {% if not selected_upazila %}disabled{% endif %}>
                                 <option value="">-- ইউনিয়ন নির্বাচন করুন --</option>
@@ -61,7 +61,7 @@
                     
                     <!-- Voter Area / ভোটার এলাকা -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label fw-semibold">ভোটার এলাকা / Voter Area</label>
+                        <label class="form-label fw-semibold">ভোটার এলাকা</label>
                         <div class="position-relative">
                             <select class="form-select" name="voter_area" id="voterAreaSelect" {% if not selected_union %}disabled{% endif %}>
                                 <option value="">-- এলাকা নির্বাচন করুন --</option>
@@ -76,11 +76,11 @@
             
             <!-- Voter Information Filters / ভোটার তথ্য -->
             <div class="mb-4">
-                <h6 class="mb-3 text-primary"><i class="las la-user me-2"></i>ভোটার তথ্য / Voter Information</h6>
+                <h6 class="mb-3 text-primary"><i class="las la-user me-2"></i>ভোটার তথ্য</h6>
                 <div class="row g-3">
                     <!-- Name / নাম -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label">নাম / Name</label>
+                        <label class="form-label">নাম</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
                                    value="{{ name_query }}" placeholder="নাম লিখুন..." 
@@ -89,9 +89,21 @@
                         </div>
                     </div>
                     
+                    <!-- Date of Birth / জন্ম তারিখ -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label">জন্ম তারিখ</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="dobDisplay" placeholder="তারিখ নির্বাচন করুন..." readonly>
+                            <input type="hidden" name="dob" id="dobHidden" value="{{ dob_query }}">
+                            <button class="btn btn-outline-secondary" type="button" id="dobClearBtn" title="মুছুন" style="display:none;">
+                                <i class="las la-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <!-- Father Name / পিতার নাম -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label">পিতার নাম / Father</label>
+                        <label class="form-label">পিতার নাম</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
                                    value="{{ father_query }}" placeholder="পিতার নাম লিখুন..." 
@@ -102,7 +114,7 @@
                     
                     <!-- Mother Name / মাতার নাম -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label">মাতার নাম / Mother</label>
+                        <label class="form-label">মাতার নাম</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
                                    value="{{ mother_query }}" placeholder="মাতার নাম লিখুন..." 
@@ -110,31 +122,32 @@
                             <div class="autosuggest-dropdown" id="motherDropdown"></div>
                         </div>
                     </div>
+                    
                     <!-- Voter No / ভোটার নং -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label">ভোটার নং / Voter ID <span class="text-muted">(ঐচ্ছিক / Optional)</span></label>
+                        <label class="form-label">ভোটার নং</label>
                         <input type="text" class="form-control" name="voter_no" value="{{ voter_no_query }}" placeholder="ভোটার নং লিখুন...">
                     </div>
                     
                     <!-- Serial No / ক্রমিক নং -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label">ক্রমিক নং / Serial No <span class="text-muted">(ঐচ্ছিক / Optional)</span></label>
+                        <label class="form-label">ক্রমিক নং</label>
                         <input type="text" class="form-control" name="serial" value="{{ serial_query }}" placeholder="ক্রমিক নং লিখুন...">
                     </div>
                     
                     <!-- Gender / লিঙ্গ -->
                     <div class="col-md-6 col-lg-4">
-                        <label class="form-label">লিঙ্গ / Gender</label>
+                        <label class="form-label">লিঙ্গ</label>
                         <select class="form-select" name="gender">
-                            <option value="all" {% if selected_gender == 'all' or not selected_gender %}selected{% endif %}>সকল / All</option>
-                            <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>পুরুষ / Male</option>
-                            <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>মহিলা / Female</option>
+                            <option value="all" {% if selected_gender == 'all' or not selected_gender %}selected{% endif %}>সকল</option>
+                            <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>পুরুষ</option>
+                            <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>মহিলা</option>
                         </select>
                     </div>
                     
                     <!-- Address / ঠিকানা -->
                     <div class="col-12">
-                        <label class="form-label">ঠিকানা / Address <span class="text-muted">(ঐচ্ছিক / Optional)</span></label>
+                        <label class="form-label">ঠিকানা</label>
                         <div class="autosuggest-wrapper">
                             <input type="text" class="form-control autosuggest-input" name="address" id="addressInput" 
                                    value="{{ address_query }}" placeholder="ঠিকানা লিখুন..." 
@@ -148,10 +161,10 @@
             <!-- Action Buttons / অ্যাকশন বাটন -->
             <div class="filter-actions d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary btn-modern" id="searchBtn">
-                    <i class="las la-search me-1"></i> খুঁজুন / Search
+                    <i class="las la-search me-1"></i> খুঁজুন
                 </button>
                 <a href="{% url 'public_search:advanced_search' %}" class="btn btn-outline-secondary btn-modern">
-                    <i class="las la-redo-alt me-1"></i> মুছুন / Clear
+                    <i class="las la-redo-alt me-1"></i> মুছুন
                 </a>
                 {% if has_filters and page_obj %}
                 <span class="text-muted small align-self-center ms-auto">
@@ -169,14 +182,14 @@
 <div class="card-modern">
     <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
         <h5 class="mb-0">
-            <i class="las la-list me-2"></i>ফলাফল / Results
+            <i class="las la-list me-2"></i>ফলাফল
             {% if page_obj %}
-            <span class="badge bg-primary-subtle text-primary ms-2">{{ page_obj.paginator.count|intcomma }} records</span>
+            <span class="badge bg-primary-subtle text-primary ms-2">{{ page_obj.paginator.count|intcomma }} জন</span>
             {% endif %}
         </h5>
         {% if page_obj %}
         <div class="d-flex align-items-center gap-2">
-            <span class="text-muted small d-none d-md-inline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span class="text-muted small d-none d-md-inline">পৃষ্ঠা {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
         </div>
         {% endif %}
     </div>
@@ -324,9 +337,9 @@
                 <i class="las la-search"></i>
             </div>
             <h5>কোনো ভোটার পাওয়া যায়নি</h5>
-            <p>No voters found. অনুগ্রহ করে আবার চেষ্টা করুন।</p>
+            <p>কোনো ভোটার পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।</p>
             <a href="{% url 'public_search:advanced_search' %}" class="btn btn-primary btn-modern">
-                <i class="las la-redo-alt me-1"></i> মুছুন / Clear
+                <i class="las la-redo-alt me-1"></i> মুছুন
             </a>
         </div>
         {% endif %}
@@ -357,48 +370,48 @@
             </div>
             <div class="modal-header">
                 <h5 class="modal-title" id="voterModalLabel">
-                    <i class="las la-user me-2"></i>ভোটার তথ্য / Voter Details
+                    <i class="las la-user me-2"></i>ভোটার তথ্য
                 </h5>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="voter-info-item">
-                            <div class="voter-info-label">ক্রমিক নং / Serial</div>
+                            <div class="voter-info-label">ক্রমিক নং</div>
                             <div class="voter-info-value"><code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold" id="modal-serial">-</code></div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">নাম / Name</div>
+                            <div class="voter-info-label">নাম</div>
                             <div class="voter-info-value" id="modal-name">-</div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">ভোটার নং / Voter ID</div>
+                            <div class="voter-info-label">ভোটার নং</div>
                             <div class="voter-info-value"><code id="modal-voter-no">-</code></div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">লিঙ্গ / Gender</div>
+                            <div class="voter-info-label">লিঙ্গ</div>
                             <div class="voter-info-value" id="modal-gender">-</div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">পিতার নাম / Father</div>
+                            <div class="voter-info-label">পিতার নাম</div>
                             <div class="voter-info-value" id="modal-father">-</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="voter-info-item">
-                            <div class="voter-info-label">মাতার নাম / Mother</div>
+                            <div class="voter-info-label">মাতার নাম</div>
                             <div class="voter-info-value" id="modal-mother">-</div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">জন্ম তারিখ / Date of Birth</div>
+                            <div class="voter-info-label">জন্ম তারিখ</div>
                             <div class="voter-info-value" id="modal-dob">-</div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">ঠিকানা / Address</div>
+                            <div class="voter-info-label">ঠিকানা</div>
                             <div class="voter-info-value" id="modal-address">-</div>
                         </div>
                         <div class="voter-info-item">
-                            <div class="voter-info-label">এলাকা / Area</div>
+                            <div class="voter-info-label">এলাকা</div>
                             <div class="voter-info-value" id="modal-category">-</div>
                         </div>
                     </div>
@@ -420,7 +433,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="slipModalLabel">
-                    <i class="las la-id-card me-2"></i>ভোটার স্লিপ / Voter Slip
+                    <i class="las la-id-card me-2"></i>ভোটার স্লিপ
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -432,7 +445,6 @@
                     </div>
                     <div class="voter-slip-header">
                         <h4>ভোটার স্লিপ</h4>
-                        <p>Voter Information Slip</p>
                     </div>
                     <div class="voter-slip-body">
                         <div class="slip-row">
@@ -494,6 +506,74 @@
 
 {% block extra_js %}
 <script>
+// English to Bangla digit mapping
+const engToBangla = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+const banglaToEng = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+
+function toBanglaDigits(str) {
+    return String(str).replace(/[0-9]/g, d => engToBangla[d]);
+}
+
+function toEnglishDigits(str) {
+    return String(str).replace(/[০-৯]/g, d => banglaToEng[d]);
+}
+
+// Initialize Flatpickr datepicker for DOB
+document.addEventListener('DOMContentLoaded', function() {
+    const dobDisplay = document.getElementById('dobDisplay');
+    const dobHidden = document.getElementById('dobHidden');
+    const dobClearBtn = document.getElementById('dobClearBtn');
+    
+    if (dobDisplay) {
+        // Parse pre-filled Bangla value into a Date for flatpickr default
+        let defaultDate = null;
+        if (dobHidden.value) {
+            const engVal = toEnglishDigits(dobHidden.value);
+            const parts = engVal.split('/');
+            if (parts.length === 3) {
+                defaultDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+            }
+            if (dobClearBtn) dobClearBtn.style.display = '';
+        }
+        
+        // Attach flatpickr directly to the display input
+        const fp = flatpickr(dobDisplay, {
+            dateFormat: 'd/m/Y',
+            defaultDate: defaultDate,
+            allowInput: false,
+            disableMobile: true,
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDates.length > 0) {
+                    const banglaDate = toBanglaDigits(dateStr);
+                    dobHidden.value = banglaDate;
+                    // Override flatpickr's English value with Bangla
+                    setTimeout(function() { dobDisplay.value = banglaDate; }, 0);
+                    if (dobClearBtn) dobClearBtn.style.display = '';
+                } else {
+                    dobHidden.value = '';
+                    if (dobClearBtn) dobClearBtn.style.display = 'none';
+                }
+            },
+            onReady: function() {
+                // Show Bangla digits if pre-filled
+                if (dobHidden.value) {
+                    dobDisplay.value = dobHidden.value;
+                }
+            }
+        });
+        
+        // Clear button
+        if (dobClearBtn) {
+            dobClearBtn.addEventListener('click', function() {
+                fp.clear();
+                dobHidden.value = '';
+                dobDisplay.value = '';
+                dobClearBtn.style.display = 'none';
+            });
+        }
+    }
+});
+
 // Current voter ID for slip download
 let currentVoterId = null;
 let currentVoterData = null;
