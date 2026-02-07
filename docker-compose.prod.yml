@@ -38,6 +38,7 @@ services:
       - /home/ubuntu/VoterApp/voter_project/staticfiles:/app/staticfiles
       - /home/ubuntu/VoterApp/voter_project/media:/app/media
       - /home/ubuntu/VoterApp/voter_project/logs:/app/logs
+      - /home/ubuntu/VoterApp/voter_project/election_votar_data:/app/election_votar_data
     expose:
       - "8000"
     depends_on:
