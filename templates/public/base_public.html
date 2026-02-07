@@ -120,24 +120,34 @@
         
         @media (max-width: 576px) {
             .page-header-card {
-                padding: 24px 16px;
+                padding: 16px 12px;
+                border-radius: 12px;
+            }
+            .page-header-card.mb-4 {
+                margin-bottom: 10px !important;
             }
             .page-header-content {
-                flex-direction: column;
-                gap: 16px;
+                flex-direction: row;
+                gap: 12px;
+                justify-content: flex-start;
             }
             .header-text {
-                text-align: center;
+                text-align: left;
             }
             .header-logo {
-                width: 90px;
-                height: 90px;
+                width: 56px;
+                height: 56px;
+                border-radius: 10px;
+                padding: 6px;
             }
             .header-title {
-                font-size: 24px;
+                font-size: 17px;
+                line-height: 1.3;
             }
             .header-subtitle {
-                font-size: 14px;
+                font-size: 11px;
+                line-height: 1.4;
+                margin-top: 2px;
             }
         }
         
@@ -371,15 +381,52 @@
 
         @media (max-width: 576px) {
             .filter-section {
-                padding: 14px 12px;
-                margin-bottom: 12px;
+                padding: 10px 10px;
+                margin-bottom: 8px;
+            }
+            .filter-section-title {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+            .filter-panel .collapse {
+                padding: 0 12px;
+            }
+            .filter-panel .collapse.show {
+                padding-bottom: 12px;
+            }
+            .filter-panel .mt-3 {
+                margin-top: 10px !important;
+            }
+            .filter-header {
+                padding: 10px 12px;
+            }
+            .filter-header h6 {
+                font-size: 13px;
             }
             .filter-actions {
-                flex-direction: column;
+                flex-direction: row;
+                padding: 10px 12px;
             }
-            .btn-search, .btn-reset {
-                width: 100%;
-                text-align: center;
+            .btn-search {
+                flex: 1;
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+            .btn-reset {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+            .filter-result-count {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .form-label {
+                font-size: 12px;
+                margin-bottom: 4px;
+            }
+            .row.g-3 {
+                --bs-gutter-y: 0.6rem;
+                --bs-gutter-x: 0.6rem;
             }
         }
 
@@ -654,6 +701,44 @@
             word-wrap: break-word;
         }
 
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 20px;
+        }
+        .modal-info-grid .voter-info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Mobile compact modal info grid */
+        @media (max-width: 576px) {
+            .modal-info-grid {
+                gap: 0 16px;
+            }
+            .modal-info-grid .voter-info-item {
+                padding: 8px 0;
+            }
+            .modal-info-grid .voter-info-item.full-width {
+                grid-column: 1 / -1;
+            }
+            .voter-info-label {
+                font-size: 10px;
+                margin-bottom: 2px;
+            }
+            .voter-info-value {
+                font-size: 13px;
+            }
+            .modal-header {
+                padding: 10px 16px;
+            }
+            .modal-body {
+                padding: 12px 16px;
+            }
+            .modal-footer {
+                padding: 10px 16px;
+            }
+        }
+
         /* Status Badges */
         .badge-status {
             display: inline-block;
@@ -796,10 +881,19 @@
             flex: 1;
         }
 
+        /* Mobile Voter Card */
+        .mobile-voter-card {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .mobile-voter-card:last-child {
+            border-bottom: none;
+        }
+
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
             .public-container {
-                padding: 12px;
+                padding: 8px;
             }
             .modal-dialog {
                 margin: 0.5rem;
@@ -809,14 +903,43 @@
                 grid-template-columns: 1fr;
             }
             .form-select, .form-control {
-                font-size: 16px;
-                padding: 12px 14px;
+                font-size: 14px;
+                padding: 8px 10px;
             }
             .voter-slip {
                 padding: 16px;
             }
             .download-btn-group {
                 flex-direction: column;
+            }
+            .card-modern .card-header {
+                padding: 10px 12px;
+            }
+            .card-modern .card-header h5 {
+                font-size: 14px;
+            }
+            .card-modern .card-body {
+                padding: 0;
+            }
+            .filter-panel.mb-4 {
+                margin-bottom: 10px !important;
+            }
+            .empty-state {
+                padding: 30px 16px;
+            }
+            .empty-icon {
+                font-size: 48px;
+                margin-bottom: 10px;
+            }
+            .pagination-wrapper {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .pagination-modern .page-link {
+                min-width: 34px;
+                height: 34px;
+                font-size: 13px;
+                padding: 6px 8px;
             }
         }
     </style>

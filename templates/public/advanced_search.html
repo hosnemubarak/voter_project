@@ -247,41 +247,35 @@
         </div>
         
         <!-- Mobile Card View -->
-        <div class="d-md-none p-3">
+        <div class="d-md-none px-2 py-2">
             {% for voter in page_obj %}
-            <div class="card mb-3 shadow-sm">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold small">{{ voter.serial|default:"-" }}</code>
-                                {% if voter.gender == 'male' %}
-                                <span class="badge-gender male">পুরুষ</span>
-                                {% elif voter.gender == 'female' %}
-                                <span class="badge-gender female">মহিলা</span>
-                                {% else %}
-                                <span class="badge-gender unknown">-</span>
-                                {% endif %}
-                            </div>
-                            <h6 class="mb-1 text-dark">{{ voter.name|default:"-" }}</h6>
-                            <code class="small text-muted">{{ voter.voter_no|default:"-" }}</code>
-                        </div>
+            <div class="mobile-voter-card">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center gap-1" style="min-width:0;">
+                        <code class="bg-primary-subtle text-primary px-1 rounded fw-bold" style="font-size:11px;">{{ voter.serial|default:"-" }}</code>
+                        <strong class="text-dark text-truncate" style="font-size:14px;">{{ voter.name|default:"-" }}</strong>
                     </div>
-                    <div class="small text-muted mb-2">
-                        <div><strong>পিতা:</strong> {{ voter.father|default:"-" }}</div>
-                        <div><strong>মাতা:</strong> {{ voter.mother|default:"-" }}</div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-primary flex-grow-1" 
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        {% if voter.gender == 'male' %}
+                        <span class="badge-gender male" style="font-size:10px;padding:2px 6px;">পু</span>
+                        {% elif voter.gender == 'female' %}
+                        <span class="badge-gender female" style="font-size:10px;padding:2px 6px;">মহি</span>
+                        {% endif %}
+                        <button type="button" class="btn btn-icon btn-soft-primary" style="width:28px;height:28px;"
                                 data-bs-toggle="modal" data-bs-target="#voterModal"
-                                onclick="showVoterDetail({{ voter.pk }}, '{{ voter.serial|default:"-"|escapejs }}', '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}')">
-                            <i class="las la-eye me-1"></i> দেখুন
+                                onclick="showVoterDetail({{ voter.pk }}, '{{ voter.serial|default:"-"|escapejs }}', '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}')"
+                                title="বিস্তারিত">
+                            <i class="las la-eye" style="font-size:14px;"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                onclick="showSlipModal({{ voter.pk }})">
-                            <i class="las la-download me-1"></i> স্লিপ
+                        <button type="button" class="btn btn-icon btn-soft-primary" style="width:28px;height:28px;"
+                                onclick="showSlipModal({{ voter.pk }})" title="স্লিপ">
+                            <i class="las la-download" style="font-size:14px;"></i>
                         </button>
                     </div>
+                </div>
+                <div class="d-flex gap-3" style="font-size:12px;color:#64748b;">
+                    <span class="text-truncate"><strong>পি:</strong> {{ voter.father|default:"-" }}</span>
+                    <span class="text-truncate"><strong>মা:</strong> {{ voter.mother|default:"-" }}</span>
                 </div>
             </div>
             {% endfor %}
@@ -375,46 +369,42 @@
                 </h5>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">ক্রমিক নং</div>
-                            <div class="voter-info-value"><code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold" id="modal-serial">-</code></div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">নাম</div>
-                            <div class="voter-info-value" id="modal-name">-</div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">ভোটার নং</div>
-                            <div class="voter-info-value"><code id="modal-voter-no">-</code></div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">লিঙ্গ</div>
-                            <div class="voter-info-value" id="modal-gender">-</div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">পিতার নাম</div>
-                            <div class="voter-info-value" id="modal-father">-</div>
-                        </div>
+                <div class="modal-info-grid">
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">ক্রমিক নং</div>
+                        <div class="voter-info-value"><code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold" id="modal-serial">-</code></div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">মাতার নাম</div>
-                            <div class="voter-info-value" id="modal-mother">-</div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">জন্ম তারিখ</div>
-                            <div class="voter-info-value" id="modal-dob">-</div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">ঠিকানা</div>
-                            <div class="voter-info-value" id="modal-address">-</div>
-                        </div>
-                        <div class="voter-info-item">
-                            <div class="voter-info-label">এলাকা</div>
-                            <div class="voter-info-value" id="modal-category">-</div>
-                        </div>
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">ভোটার নং</div>
+                        <div class="voter-info-value"><code id="modal-voter-no">-</code></div>
+                    </div>
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">নাম</div>
+                        <div class="voter-info-value" id="modal-name">-</div>
+                    </div>
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">লিঙ্গ</div>
+                        <div class="voter-info-value" id="modal-gender">-</div>
+                    </div>
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">পিতার নাম</div>
+                        <div class="voter-info-value" id="modal-father">-</div>
+                    </div>
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">মাতার নাম</div>
+                        <div class="voter-info-value" id="modal-mother">-</div>
+                    </div>
+                    <div class="voter-info-item">
+                        <div class="voter-info-label">জন্ম তারিখ</div>
+                        <div class="voter-info-value" id="modal-dob">-</div>
+                    </div>
+                    <div class="voter-info-item full-width">
+                        <div class="voter-info-label">ঠিকানা</div>
+                        <div class="voter-info-value" id="modal-address">-</div>
+                    </div>
+                    <div class="voter-info-item full-width">
+                        <div class="voter-info-label">এলাকা</div>
+                        <div class="voter-info-value" id="modal-category">-</div>
                     </div>
                 </div>
             </div>
