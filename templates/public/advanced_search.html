@@ -72,24 +72,21 @@
                 {% endcomment %}
             </div>
             
+            <!-- Search Instructions -->
+            <div class="filter-section" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px 16px;">
+                <p style="font-size:13px; color:#166534; margin:0 0 6px; font-weight:600;"><i class="las la-info-circle me-1"></i> কিভাবে খুঁজবেন</p>
+                <p style="font-size:12px; color:#15803d; margin:0; line-height:1.7;">
+                    ১. এলাকা নির্বাচন করুন (উপজেলা ও ইউনিয়ন)<br>
+                    ২. জন্ম তারিখ (দিন/মাস/সাল) ও লিঙ্গ দিয়ে খুঁজুন<br>
+                    ৩. ফলাফল না পেলে <strong>"বিস্তারিত সার্চ"</strong> ক্লিক করে নাম, পিতা বা মাতার নাম দিয়ে খুঁজুন
+                </p>
+            </div>
+
             <!-- Voter Information Filters / ভোটার তথ্য -->
             <div class="filter-section">
                 <div class="filter-section-title"><i class="las la-user"></i> ভোটার তথ্য</div>
                 <p class="text-muted mb-2" style="font-size:13px;">জন্ম তারিখ ব্যবহার করে ভোটার তথ্য খুঁজুন</p>
                 <div class="row g-3">
-                    {% comment %}
-                    <!-- Name / নাম -->
-                    <div class="col-6">
-                        <label class="form-label">নাম</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
-                                   value="{{ name_query }}" placeholder="ভোটারের নাম লিখুন..." 
-                                   data-field="name" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="nameDropdown"></div>
-                        </div>
-                    </div>
-                    {% endcomment %}
-                    
                     <!-- Date of Birth / জন্ম তারিখ (Day, Month, Year dropdowns) -->
                     <div class="col-4">
                         <label class="form-label">দিন</label>
@@ -119,30 +116,6 @@
                         </select>
                     </div>
                     
-                    {% comment %}
-                    <!-- Father Name / পিতার নাম -->
-                    <div class="col-6">
-                        <label class="form-label">পিতার নাম</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
-                                   value="{{ father_query }}" placeholder="পিতার নাম..." 
-                                   data-field="father" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="fatherDropdown"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Mother Name / মাতার নাম -->
-                    <div class="col-6">
-                        <label class="form-label">মাতার নাম</label>
-                        <div class="autosuggest-wrapper">
-                            <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
-                                   value="{{ mother_query }}" placeholder="মাতার নাম..." 
-                                   data-field="mother" autocomplete="off">
-                            <div class="autosuggest-dropdown" id="motherDropdown"></div>
-                        </div>
-                    </div>
-                    {% endcomment %}
-                    
                     <!-- Gender / লিঙ্গ -->
                     <div class="col-6">
                         <label class="form-label">লিঙ্গ</label>
@@ -151,6 +124,51 @@
                             <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>পুরুষ</option>
                             <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>মহিলা</option>
                         </select>
+                    </div>
+                </div>
+                
+                <!-- Advanced Search Toggle -->
+                <div class="mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="advancedSearchToggle" onclick="toggleAdvancedSearch()">
+                        <i class="las la-search-plus me-1"></i> বিস্তারিত সার্চ
+                    </button>
+                </div>
+                
+                <!-- Advanced Search Fields (hidden by default) -->
+                <div id="advancedSearchFields" style="display:none;" class="mt-3">
+                    <div class="row g-3">
+                        <!-- Name / নাম -->
+                        <div class="col-6">
+                            <label class="form-label">নাম</label>
+                            <div class="autosuggest-wrapper">
+                                <input type="text" class="form-control autosuggest-input" name="name" id="nameInput" 
+                                       value="{{ name_query }}" placeholder="ভোটারের নাম লিখুন..." 
+                                       data-field="name" autocomplete="off">
+                                <div class="autosuggest-dropdown" id="nameDropdown"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Father Name / পিতার নাম -->
+                        <div class="col-6">
+                            <label class="form-label">পিতার নাম</label>
+                            <div class="autosuggest-wrapper">
+                                <input type="text" class="form-control autosuggest-input" name="father" id="fatherInput" 
+                                       value="{{ father_query }}" placeholder="পিতার নাম..." 
+                                       data-field="father" autocomplete="off">
+                                <div class="autosuggest-dropdown" id="fatherDropdown"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mother Name / মাতার নাম -->
+                        <div class="col-6">
+                            <label class="form-label">মাতার নাম</label>
+                            <div class="autosuggest-wrapper">
+                                <input type="text" class="form-control autosuggest-input" name="mother" id="motherInput" 
+                                       value="{{ mother_query }}" placeholder="মাতার নাম..." 
+                                       data-field="mother" autocomplete="off">
+                                <div class="autosuggest-dropdown" id="motherDropdown"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -531,7 +549,32 @@ function toEnglishDigits(str) {
     return String(str).replace(/[০-৯]/g, d => banglaToEng[d]);
 }
 
-// DOB dropdowns are now used instead of Flatpickr
+// Advanced Search Toggle
+function toggleAdvancedSearch() {
+    var fields = document.getElementById('advancedSearchFields');
+    var btn = document.getElementById('advancedSearchToggle');
+    if (fields.style.display === 'none') {
+        fields.style.display = 'block';
+        btn.innerHTML = '<i class="las la-search-minus me-1"></i> বিস্তারিত সার্চ বন্ধ করুন';
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-outline-danger');
+    } else {
+        fields.style.display = 'none';
+        btn.innerHTML = '<i class="las la-search-plus me-1"></i> বিস্তারিত সার্চ';
+        btn.classList.remove('btn-outline-danger');
+        btn.classList.add('btn-outline-secondary');
+    }
+}
+
+// Auto-show advanced fields if any value is pre-filled
+document.addEventListener('DOMContentLoaded', function() {
+    var nameVal = document.getElementById('nameInput');
+    var fatherVal = document.getElementById('fatherInput');
+    var motherVal = document.getElementById('motherInput');
+    if ((nameVal && nameVal.value) || (fatherVal && fatherVal.value) || (motherVal && motherVal.value)) {
+        toggleAdvancedSearch();
+    }
+});
 
 // Current voter ID for slip download
 let currentVoterId = null;
