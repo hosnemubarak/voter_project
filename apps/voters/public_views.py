@@ -13,6 +13,7 @@ from django.utils.html import escape
 from functools import wraps
 import re
 import json
+import datetime
 
 from .models import Category, Voter
 
@@ -57,7 +58,9 @@ def advanced_voter_search(request):
     mother_query = request.GET.get('mother', '').strip()
     voter_no_query = request.GET.get('voter_no', '').strip()
     serial_query = request.GET.get('serial', '').strip()
-    dob_query = request.GET.get('dob', '').strip()
+    dob_day = request.GET.get('dob_day', '').strip()
+    dob_month = request.GET.get('dob_month', '').strip()
+    dob_year = request.GET.get('dob_year', '').strip()
     gender = request.GET.get('gender', '')
     
     # Hierarchical category filters
@@ -94,20 +97,27 @@ def advanced_voter_search(request):
     if serial_query:
         voters = voters.filter(serial__icontains=serial_query)
     
-    if dob_query:
-        # Validate: only allow digits (Bangla/English), slashes, dashes, dots
-        dob_clean = re.sub(r'[^0-9০-৯/\-.]', '', dob_query)
-        if dob_clean:
-            # Convert between Bangla and English digits for DOB search
-            bangla_digits = str.maketrans('0123456789', '০১২৩৪৫৬৭৮৯')
-            english_digits = str.maketrans('০১২৩৪৫৬৭৮৯', '0123456789')
-            dob_bangla = dob_clean.translate(bangla_digits)
-            dob_english = dob_clean.translate(english_digits)
-            voters = voters.filter(
-                Q(dob__icontains=dob_clean) |
-                Q(dob__icontains=dob_bangla) |
-                Q(dob__icontains=dob_english)
-            )
+    # DOB filtering with separate day/month/year
+    bangla_digits_map = str.maketrans('0123456789', '০১২৩৪৫৬৭৮৯')
+    english_digits_map = str.maketrans('০১২৩৪৫৬৭৮৯', '0123456789')
+    
+    if dob_day or dob_month or dob_year:
+        dob_q = Q()
+        if dob_year:
+            year_en = dob_year.translate(english_digits_map)
+            year_bn = dob_year.translate(bangla_digits_map)
+            dob_q &= (Q(dob__icontains=year_en) | Q(dob__icontains=year_bn))
+        if dob_month:
+            month_en = dob_month.translate(english_digits_map).zfill(2)
+            month_bn = month_en.translate(bangla_digits_map)
+            dob_q &= (Q(dob__icontains='/' + month_en + '/') | Q(dob__icontains='/' + month_bn + '/') |
+                       Q(dob__icontains='-' + month_en + '-') | Q(dob__icontains='-' + month_bn + '-'))
+        if dob_day:
+            day_en = dob_day.translate(english_digits_map).zfill(2)
+            day_bn = day_en.translate(bangla_digits_map)
+            dob_q &= (Q(dob__startswith=day_en) | Q(dob__startswith=day_bn) |
+                       Q(dob__icontains=day_en) | Q(dob__icontains=day_bn))
+        voters = voters.filter(dob_q)
     
     if address_query:
         voters = voters.filter(address__icontains=address_query)
@@ -130,7 +140,7 @@ def advanced_voter_search(request):
     # Check if any filter is applied
     has_filters = any([
         search_query, name_query, father_query, mother_query,
-        voter_no_query, serial_query, dob_query, address_query,
+        voter_no_query, serial_query, dob_day, dob_month, dob_year, address_query,
         upazila_id, union_id, voter_area_id, gender and gender != 'all'
     ])
 
@@ -155,6 +165,25 @@ def advanced_voter_search(request):
     if union_id:
         voter_areas = Category.objects.filter(parent_id=union_id).order_by('name')
 
+    # DOB dropdown options with Bangla labels
+    en_to_bn = str.maketrans('0123456789', '০১২৩৪৫৬৭৮৯')
+    dob_days = [{'value': str(i).zfill(2), 'label': str(i).zfill(2).translate(en_to_bn)} for i in range(1, 32)]
+    dob_months = [
+        {'value': '01', 'label': 'জানুয়ারি'},
+        {'value': '02', 'label': 'ফেব্রুয়ারি'},
+        {'value': '03', 'label': 'মার্চ'},
+        {'value': '04', 'label': 'এপ্রিল'},
+        {'value': '05', 'label': 'মে'},
+        {'value': '06', 'label': 'জুন'},
+        {'value': '07', 'label': 'জুলাই'},
+        {'value': '08', 'label': 'আগস্ট'},
+        {'value': '09', 'label': 'সেপ্টেম্বর'},
+        {'value': '10', 'label': 'অক্টোবর'},
+        {'value': '11', 'label': 'নভেম্বর'},
+        {'value': '12', 'label': 'ডিসেম্বর'},
+    ]
+    dob_years = [{'value': str(y), 'label': str(y).translate(en_to_bn)} for y in range(2010, 1909, -1)]
+
     context = {
         'page_obj': page_obj,
         'voters': page_obj,
@@ -167,13 +196,18 @@ def advanced_voter_search(request):
         'mother_query': mother_query,
         'voter_no_query': voter_no_query,
         'serial_query': serial_query,
-        'dob_query': dob_query,
         'address_query': address_query,
         'selected_upazila': upazila_id,
         'selected_union': union_id,
         'selected_voter_area': voter_area_id,
         'selected_gender': gender,
         'has_filters': has_filters,
+        'dob_days': dob_days,
+        'dob_months': dob_months,
+        'dob_years': dob_years,
+        'selected_dob_day': dob_day,
+        'selected_dob_month': dob_month,
+        'selected_dob_year': dob_year,
     }
     return render(request, 'public/advanced_search.html', context)
 

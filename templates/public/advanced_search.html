@@ -89,16 +89,33 @@
                     </div>
                     {% endcomment %}
                     
-                    <!-- Date of Birth / জন্ম তারিখ -->
-                    <div class="col-6">
-                        <label class="form-label">জন্ম তারিখ</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="dobDisplay" placeholder="তারিখ বাছুন..." readonly>
-                            <input type="hidden" name="dob" id="dobHidden" value="{{ dob_query }}">
-                            <button class="btn btn-outline-secondary" type="button" id="dobClearBtn" title="মুছুন" style="display:none;">
-                                <i class="las la-times"></i>
-                            </button>
-                        </div>
+                    <!-- Date of Birth / জন্ম তারিখ (Day, Month, Year dropdowns) -->
+                    <div class="col-4">
+                        <label class="form-label">দিন</label>
+                        <select class="form-select" name="dob_day" id="dobDay">
+                            <option value="">দিন</option>
+                            {% for d in dob_days %}
+                            <option value="{{ d.value }}" {% if selected_dob_day == d.value %}selected{% endif %}>{{ d.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">মাস</label>
+                        <select class="form-select" name="dob_month" id="dobMonth">
+                            <option value="">মাস</option>
+                            {% for m in dob_months %}
+                            <option value="{{ m.value }}" {% if selected_dob_month == m.value %}selected{% endif %}>{{ m.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">সাল</label>
+                        <select class="form-select" name="dob_year" id="dobYear">
+                            <option value="">সাল</option>
+                            {% for y in dob_years %}
+                            <option value="{{ y.value }}" {% if selected_dob_year == y.value %}selected{% endif %}>{{ y.label }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     
                     {% comment %}
@@ -513,61 +530,7 @@ function toEnglishDigits(str) {
     return String(str).replace(/[০-৯]/g, d => banglaToEng[d]);
 }
 
-// Initialize Flatpickr datepicker for DOB
-document.addEventListener('DOMContentLoaded', function() {
-    const dobDisplay = document.getElementById('dobDisplay');
-    const dobHidden = document.getElementById('dobHidden');
-    const dobClearBtn = document.getElementById('dobClearBtn');
-    
-    if (dobDisplay) {
-        // Parse pre-filled Bangla value into a Date for flatpickr default
-        let defaultDate = null;
-        if (dobHidden.value) {
-            const engVal = toEnglishDigits(dobHidden.value);
-            const parts = engVal.split('/');
-            if (parts.length === 3) {
-                defaultDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-            }
-            if (dobClearBtn) dobClearBtn.style.display = '';
-        }
-        
-        // Attach flatpickr directly to the display input
-        const fp = flatpickr(dobDisplay, {
-            dateFormat: 'd/m/Y',
-            defaultDate: defaultDate,
-            allowInput: false,
-            disableMobile: true,
-            onChange: function(selectedDates, dateStr) {
-                if (selectedDates.length > 0) {
-                    const banglaDate = toBanglaDigits(dateStr);
-                    dobHidden.value = banglaDate;
-                    // Override flatpickr's English value with Bangla
-                    setTimeout(function() { dobDisplay.value = banglaDate; }, 0);
-                    if (dobClearBtn) dobClearBtn.style.display = '';
-                } else {
-                    dobHidden.value = '';
-                    if (dobClearBtn) dobClearBtn.style.display = 'none';
-                }
-            },
-            onReady: function() {
-                // Show Bangla digits if pre-filled
-                if (dobHidden.value) {
-                    dobDisplay.value = dobHidden.value;
-                }
-            }
-        });
-        
-        // Clear button
-        if (dobClearBtn) {
-            dobClearBtn.addEventListener('click', function() {
-                fp.clear();
-                dobHidden.value = '';
-                dobDisplay.value = '';
-                dobClearBtn.style.display = 'none';
-            });
-        }
-    }
-});
+// DOB dropdowns are now used instead of Flatpickr
 
 // Current voter ID for slip download
 let currentVoterId = null;
