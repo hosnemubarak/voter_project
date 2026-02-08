@@ -4,24 +4,11 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{% block title %}ভোটার স্লিপ ডাউনলোড{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="ভোটার স্লিপ ডাউনলোড - Voter Slip Download" name="description" />
-
-    <!-- Facebook Open Graph Meta Tags -->
-    <meta property="og:title" content="ভোটার স্লিপ ডাউনলোড" />
-    <meta property="og:description" content="ভোটার তথ্য খুঁজুন এবং স্লিপ ডাউনলোড করুন। সৌজন্যে: চট্টগ্রাম-১৫ আসনের এমপি পদপ্রার্থী নাজমুল মোস্তফা আমিন" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="bn_BD" />
-    {% block og_image %}<meta property="og:image" content="{% static 'images/logo-voter-search-page.png' %}" />{% endblock %}
-
     <!-- App favicon -->
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
-
-    <!-- Preconnect to CDN for faster loading in restricted browsers -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
     <!-- Bootstrap Css -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
@@ -959,22 +946,101 @@
 </head>
 
 <body>
+    <!-- Facebook In-App Browser Detection & Redirect -->
+    <div id="fbBrowserOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow-y:auto;">
+        <div style="max-width:420px; margin:0 auto; padding:40px 24px; text-align:center; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+            <div style="width:80px; height:80px; margin:0 auto 24px; background:linear-gradient(135deg,#006A4E,#00503b); border-radius:20px; display:flex; align-items:center; justify-content:center;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+            </div>
+            <h2 style="font-size:22px; font-weight:700; color:#1e293b; margin:0 0 12px;">ব্রাউজারে খুলুন</h2>
+            <p style="font-size:15px; color:#64748b; margin:0 0 28px; line-height:1.6;">
+                এই পেজটি Facebook অ্যাপের ভিতরে সঠিকভাবে কাজ করে না।<br>
+                অনুগ্রহ করে <strong>Chrome</strong> বা অন্য ব্রাউজারে খুলুন।
+            </p>
+            
+            <!-- Android: Open in Chrome/default browser -->
+            <a id="fbOpenBrowser" href="#" 
+               style="display:inline-block; width:100%; padding:14px 24px; background:linear-gradient(135deg,#006A4E,#00503b); color:#fff; text-decoration:none; border-radius:12px; font-size:16px; font-weight:600; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,106,78,0.3);">
+                🌐 ব্রাউজারে খুলুন
+            </a>
+            
+            <!-- Copy link fallback -->
+            <button id="fbCopyLink" onclick="copyPageLink()" 
+                    style="display:inline-block; width:100%; padding:12px 24px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; border-radius:12px; font-size:14px; font-weight:500; cursor:pointer; margin-bottom:20px;">
+                📋 লিংক কপি করুন
+            </button>
+            
+            <div style="background:#f8fafc; border-radius:10px; padding:16px; text-align:left; border:1px solid #e9edf2;">
+                <p style="font-size:13px; color:#64748b; margin:0 0 8px; font-weight:600;">কিভাবে খুলবেন:</p>
+                <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.7;">
+                    ১. উপরে ⋮ (তিন ডট) মেনুতে ক্লিক করুন<br>
+                    ২. "Open in Chrome" বা "Open in Browser" এ ক্লিক করুন
+                </p>
+            </div>
+            
+            <p id="fbCopyMsg" style="display:none; font-size:13px; color:#006A4E; margin-top:12px; font-weight:500;">✅ লিংক কপি হয়েছে! ব্রাউজারে পেস্ট করুন।</p>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var ua = navigator.userAgent || '';
+        var isFBBrowser = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger/i.test(ua);
+        
+        if (isFBBrowser) {
+            var overlay = document.getElementById('fbBrowserOverlay');
+            if (overlay) overlay.style.display = 'block';
+            
+            var currentUrl = window.location.href;
+            var openBtn = document.getElementById('fbOpenBrowser');
+            
+            if (openBtn) {
+                // Android: use intent to open in default browser
+                if (/android/i.test(ua)) {
+                    openBtn.href = 'intent://' + currentUrl.replace(/^https?:\/\//, '') + '#Intent;scheme=https;action=android.intent.action.VIEW;end';
+                } else {
+                    // iOS: try window.open (sometimes works) or show copy instructions
+                    openBtn.href = currentUrl;
+                    openBtn.setAttribute('target', '_blank');
+                }
+            }
+        }
+    })();
+    
+    function copyPageLink() {
+        var url = window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function() {
+                showCopyMsg();
+            });
+        } else {
+            // Fallback for older browsers
+            var input = document.createElement('input');
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showCopyMsg();
+        }
+    }
+    
+    function showCopyMsg() {
+        var msg = document.getElementById('fbCopyMsg');
+        if (msg) msg.style.display = 'block';
+        setTimeout(function() { if (msg) msg.style.display = 'none'; }, 3000);
+    }
+    </script>
+
     <div class="public-container">
         {% block content %}{% endblock %}
     </div>
 
     <!-- JAVASCRIPT -->
-    <!-- Polyfills for older browsers (Facebook in-app browser, old Android WebView) -->
-    <script>
-    // Promise polyfill for browsers that don't support it
-    if (typeof Promise === 'undefined') {
-        document.write('<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"><\/script>');
-    }
-    // fetch() polyfill for browsers that don't support it
-    if (typeof fetch === 'undefined') {
-        document.write('<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3/dist/fetch.umd.js"><\/script>');
-    }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

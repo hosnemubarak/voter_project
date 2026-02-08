@@ -51,9 +51,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Allow Facebook in-app browser (WebView) to render the page
-X_FRAME_OPTIONS = 'SAMEORIGIN'
-
 ROOT_URLCONF = 'voter_project.urls'
 
 TEMPLATES = [
@@ -164,7 +161,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Whitenoise settings for production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-WHITENOISE_ALLOW_ALL_ORIGINS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
