@@ -957,11 +957,11 @@
                 </svg>
             </div>
             <h2 style="font-size:22px; font-weight:700; color:#1e293b; margin:0 0 12px;">ব্রাউজারে খুলুন</h2>
-            <p style="font-size:15px; color:#64748b; margin:0 0 28px; line-height:1.6;">
+            <p id="fbSubtext" style="font-size:15px; color:#64748b; margin:0 0 28px; line-height:1.6;">
                 অনুগ্রহ করে <strong>Chrome</strong> বা অন্য ব্রাউজারে খুলুন।
             </p>
             
-            <!-- Android: Open in Chrome/default browser -->
+            <!-- Open in browser button -->
             <a id="fbOpenBrowser" href="#" 
                style="display:inline-block; width:100%; padding:14px 24px; background:linear-gradient(135deg,#006A4E,#00503b); color:#fff; text-decoration:none; border-radius:12px; font-size:16px; font-weight:600; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,106,78,0.3);">
                 🌐 ব্রাউজারে খুলুন
@@ -973,11 +973,24 @@
                 📋 লিংক কপি করুন
             </button>
             
-            <div style="background:#f8fafc; border-radius:10px; padding:16px; text-align:left; border:1px solid #e9edf2;">
+            <!-- Android instructions -->
+            <div id="fbInstructAndroid" style="display:none; background:#f8fafc; border-radius:10px; padding:16px; text-align:left; border:1px solid #e9edf2;">
                 <p style="font-size:13px; color:#64748b; margin:0 0 8px; font-weight:600;">কিভাবে খুলবেন:</p>
                 <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.7;">
                     ১. উপরে ⋮ (তিন ডট) মেনুতে ক্লিক করুন<br>
                     ২. "Open in Chrome" বা "Open in Browser" এ ক্লিক করুন
+                </p>
+            </div>
+            
+            <!-- iOS instructions -->
+            <div id="fbInstructIOS" style="display:none; background:#f8fafc; border-radius:10px; padding:16px; text-align:left; border:1px solid #e9edf2;">
+                <p style="font-size:13px; color:#64748b; margin:0 0 8px; font-weight:600;">কিভাবে খুলবেন:</p>
+                <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.7;">
+                    ১. নিচে ডানদিকে <strong>⋯</strong> (তিন ডট) বাটনে ট্যাপ করুন<br>
+                    ২. <strong>"Safari-তে খুলুন"</strong> বা <strong>"Open in Safari"</strong> এ ট্যাপ করুন
+                </p>
+                <p style="font-size:13px; color:#94a3b8; margin:8px 0 0; line-height:1.7;">
+                    অথবা "লিংক কপি করুন" বাটন চাপুন, তারপর Safari খুলে পেস্ট করুন।
                 </p>
             </div>
             
@@ -996,13 +1009,45 @@
             
             var currentUrl = window.location.href;
             var openBtn = document.getElementById('fbOpenBrowser');
+            var isIOS = /iPhone|iPad|iPod/i.test(ua);
+            var isAndroid = /android/i.test(ua);
+            
+            // Show platform-specific instructions
+            if (isIOS) {
+                var iosInst = document.getElementById('fbInstructIOS');
+                if (iosInst) iosInst.style.display = 'block';
+                // Update subtext for iOS
+                var subtext = document.getElementById('fbSubtext');
+                if (subtext) subtext.innerHTML = 'অনুগ্রহ করে <strong>Safari</strong> ব্রাউজারে খুলুন।';
+            } else {
+                var androidInst = document.getElementById('fbInstructAndroid');
+                if (androidInst) androidInst.style.display = 'block';
+            }
             
             if (openBtn) {
-                // Android: use intent to open in default browser
-                if (/android/i.test(ua)) {
+                if (isAndroid) {
+                    // Android: use intent to open in default browser
                     openBtn.href = 'intent://' + currentUrl.replace(/^https?:\/\//, '') + '#Intent;scheme=https;action=android.intent.action.VIEW;end';
+                } else if (isIOS) {
+                    // iOS: try multiple methods to escape FB browser
+                    openBtn.href = '#';
+                    openBtn.onclick = function(e) {
+                        e.preventDefault();
+                        // Method 1: Try x-safari-https scheme (works on some iOS versions)
+                        var safariUrl = 'x-safari-' + currentUrl;
+                        var w = window.open(safariUrl, '_blank');
+                        // Method 2: If that didn't work, try googlechrome scheme
+                        setTimeout(function() {
+                            var chromeUrl = currentUrl.replace('https://', 'googlechromes://').replace('http://', 'googlechrome://');
+                            window.location.href = chromeUrl;
+                        }, 500);
+                        // Method 3: Auto-copy the link as last resort
+                        setTimeout(function() {
+                            copyPageLink();
+                        }, 1200);
+                        return false;
+                    };
                 } else {
-                    // iOS: try window.open (sometimes works) or show copy instructions
                     openBtn.href = currentUrl;
                     openBtn.setAttribute('target', '_blank');
                 }
@@ -1019,8 +1064,11 @@
         } else {
             // Fallback for older browsers
             var input = document.createElement('input');
+            input.style.position = 'fixed';
+            input.style.opacity = '0';
             input.value = url;
             document.body.appendChild(input);
+            input.focus();
             input.select();
             document.execCommand('copy');
             document.body.removeChild(input);
