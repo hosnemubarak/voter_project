@@ -4,11 +4,24 @@
 
 <head>
     <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{% block title %}ভোটার স্লিপ ডাউনলোড{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta content="ভোটার স্লিপ ডাউনলোড - Voter Slip Download" name="description" />
+
+    <!-- Facebook Open Graph Meta Tags -->
+    <meta property="og:title" content="ভোটার স্লিপ ডাউনলোড" />
+    <meta property="og:description" content="ভোটার তথ্য খুঁজুন এবং স্লিপ ডাউনলোড করুন। সৌজন্যে: চট্টগ্রাম-১৫ আসনের এমপি পদপ্রার্থী নাজমুল মোস্তফা আমিন" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="bn_BD" />
+    {% block og_image %}<meta property="og:image" content="{% static 'images/logo-voter-search-page.png' %}" />{% endblock %}
+
     <!-- App favicon -->
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
+
+    <!-- Preconnect to CDN for faster loading in restricted browsers -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
     <!-- Bootstrap Css -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
@@ -951,6 +964,17 @@
     </div>
 
     <!-- JAVASCRIPT -->
+    <!-- Polyfills for older browsers (Facebook in-app browser, old Android WebView) -->
+    <script>
+    // Promise polyfill for browsers that don't support it
+    if (typeof Promise === 'undefined') {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"><\/script>');
+    }
+    // fetch() polyfill for browsers that don't support it
+    if (typeof fetch === 'undefined') {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3/dist/fetch.umd.js"><\/script>');
+    }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

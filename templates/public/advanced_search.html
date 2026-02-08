@@ -7,7 +7,7 @@
 <!-- Page Header -->
 <div class="page-header-card mb-4">
     <div class="page-header-content">
-        <img src="{% static 'images/logo-voter-search-page.png' %}" alt="Logo" class="header-logo">
+        <img src="{% static 'images/logo-voter-search-page.png' %}" alt="Logo" class="header-logo" crossorigin="anonymous" onerror="this.style.display='none'">
         <div class="header-text">
             <h1 class="header-title">ভোটার স্লিপ ডাউনলোড করুন</h1>
             <h2 class="header-subtitle">সৌজন্যে: চট্টগ্রাম-১৫ (সাতকানিয়া-লোহাগাড়া) আসনের সংসদ সদস্য (এমপি) পদপ্রার্থী নাজমুল মোস্তফা আমিন</h2>
@@ -370,7 +370,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-banner-wrapper">
-                <img src="{% static 'images/slip-banner.png' %}" alt="Banner" class="modal-banner-img">
+                <img src="{% static 'images/slip-banner.png' %}" alt="Banner" class="modal-banner-img" crossorigin="anonymous">
                 <button type="button" class="btn-close btn-close-white modal-banner-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-header">
@@ -442,7 +442,7 @@
                 <!-- Voter Slip Content -->
                 <div class="voter-slip" id="voterSlipContent">
                     <div class="slip-banner-wrapper">
-                        <img src="{% static 'images/slip-banner.png' %}" alt="Banner" class="slip-banner-img">
+                        <img src="{% static 'images/slip-banner.png' %}" alt="Banner" class="slip-banner-img" crossorigin="anonymous">
                     </div>
                     <div class="voter-slip-header">
                         <h4>ভোটার স্লিপ</h4>
@@ -507,30 +507,34 @@
 
 {% block extra_js %}
 <script>
+// ============================================================
+// ES5-compatible JavaScript for Facebook in-app browser support
+// ============================================================
+
 // English to Bangla digit mapping
-const engToBangla = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
-const banglaToEng = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+var engToBangla = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+var banglaToEng = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
 
 function toBanglaDigits(str) {
-    return String(str).replace(/[0-9]/g, d => engToBangla[d]);
+    return String(str).replace(/[0-9]/g, function(d) { return engToBangla[d]; });
 }
 
 function toEnglishDigits(str) {
-    return String(str).replace(/[০-৯]/g, d => banglaToEng[d]);
+    return String(str).replace(/[০-৯]/g, function(d) { return banglaToEng[d]; });
 }
 
 // Initialize Flatpickr datepicker for DOB
 document.addEventListener('DOMContentLoaded', function() {
-    const dobDisplay = document.getElementById('dobDisplay');
-    const dobHidden = document.getElementById('dobHidden');
-    const dobClearBtn = document.getElementById('dobClearBtn');
+    var dobDisplay = document.getElementById('dobDisplay');
+    var dobHidden = document.getElementById('dobHidden');
+    var dobClearBtn = document.getElementById('dobClearBtn');
     
     if (dobDisplay) {
         // Parse pre-filled Bangla value into a Date for flatpickr default
-        let defaultDate = null;
+        var defaultDate = null;
         if (dobHidden.value) {
-            const engVal = toEnglishDigits(dobHidden.value);
-            const parts = engVal.split('/');
+            var engVal = toEnglishDigits(dobHidden.value);
+            var parts = engVal.split('/');
             if (parts.length === 3) {
                 defaultDate = parts[2] + '-' + parts[1] + '-' + parts[0];
             }
@@ -538,14 +542,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Attach flatpickr directly to the display input
-        const fp = flatpickr(dobDisplay, {
+        var fp = flatpickr(dobDisplay, {
             dateFormat: 'd/m/Y',
             defaultDate: defaultDate,
             allowInput: false,
             disableMobile: true,
             onChange: function(selectedDates, dateStr) {
                 if (selectedDates.length > 0) {
-                    const banglaDate = toBanglaDigits(dateStr);
+                    var banglaDate = toBanglaDigits(dateStr);
                     dobHidden.value = banglaDate;
                     // Override flatpickr's English value with Bangla
                     setTimeout(function() { dobDisplay.value = banglaDate; }, 0);
@@ -576,19 +580,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Current voter ID for slip download
-let currentVoterId = null;
-let currentVoterData = null;
+var currentVoterId = null;
+var currentVoterData = null;
 
 // Voter Detail Modal
 function showVoterDetail(id, serial, name, voterNo, gender, father, mother, dob, address, category) {
     currentVoterId = id;
-    currentVoterData = { serial, name, voterNo, gender, father, mother, dob, address, category };
+    currentVoterData = {
+        serial: serial, name: name, voterNo: voterNo, gender: gender,
+        father: father, mother: mother, dob: dob, address: address, category: category
+    };
     
     document.getElementById('modal-serial').textContent = serial;
     document.getElementById('modal-name').textContent = name;
     document.getElementById('modal-voter-no').textContent = voterNo;
     
-    let genderHtml = gender;
+    var genderHtml = gender;
     if (gender === 'male') {
         genderHtml = '<span class="badge-gender male">পুরুষ</span>';
     } else if (gender === 'female') {
@@ -605,430 +612,427 @@ function showVoterDetail(id, serial, name, voterNo, gender, father, mother, dob,
 
 function downloadFromModal() {
     if (currentVoterId) {
-        const detailModal = bootstrap.Modal.getInstance(document.getElementById('voterModal'));
+        var detailModal = bootstrap.Modal.getInstance(document.getElementById('voterModal'));
         if (detailModal) detailModal.hide();
         showSlipModal(currentVoterId);
     }
 }
 
 // Voter Slip Modal
-async function showSlipModal(voterId) {
+function showSlipModal(voterId) {
     currentVoterId = voterId;
+    var slipUrl = '{% url "public_search:voter_slip" 0 %}'.replace('0', voterId);
     
-    try {
-        const response = await fetch(`{% url 'public_search:voter_slip' 0 %}`.replace('0', voterId));
-        const data = await response.json();
-        
-        document.getElementById('slip-serial').textContent = data.serial;
-        document.getElementById('slip-name').textContent = data.name;
-        document.getElementById('slip-voter-no').textContent = data.voter_no;
-        document.getElementById('slip-father').textContent = data.father;
-        document.getElementById('slip-mother').textContent = data.mother;
-        document.getElementById('slip-gender').textContent = data.gender;
-        document.getElementById('slip-dob').textContent = data.dob;
-        document.getElementById('slip-address').textContent = data.address;
-        document.getElementById('slip-category').textContent = data.category;
-        
-        currentVoterData = data;
-        
-        const slipModal = new bootstrap.Modal(document.getElementById('slipModal'));
-        slipModal.show();
-    } catch (error) {
-        console.error('Error fetching voter data:', error);
-        alert('Error loading voter information. Please try again.');
+    fetch(slipUrl)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            document.getElementById('slip-serial').textContent = data.serial;
+            document.getElementById('slip-name').textContent = data.name;
+            document.getElementById('slip-voter-no').textContent = data.voter_no;
+            document.getElementById('slip-father').textContent = data.father;
+            document.getElementById('slip-mother').textContent = data.mother;
+            document.getElementById('slip-gender').textContent = data.gender;
+            document.getElementById('slip-dob').textContent = data.dob;
+            document.getElementById('slip-address').textContent = data.address;
+            document.getElementById('slip-category').textContent = data.category;
+            
+            currentVoterData = data;
+            
+            var slipModal = new bootstrap.Modal(document.getElementById('slipModal'));
+            slipModal.show();
+        })
+        .catch(function(error) {
+            console.error('Error fetching voter data:', error);
+            alert('Error loading voter information. Please try again.');
+        });
+}
+
+// Helper: wait for all images in an element to load
+function waitForImages(element) {
+    var images = element.querySelectorAll('img');
+    var promises = [];
+    for (var i = 0; i < images.length; i++) {
+        (function(img) {
+            if (!img.complete) {
+                promises.push(new Promise(function(resolve) {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                }));
+            }
+        })(images[i]);
     }
+    return Promise.all(promises);
+}
+
+// Helper: capture element to canvas
+function captureElement(element) {
+    var originalMaxWidth = element.style.maxWidth;
+    var originalOverflow = element.style.overflow;
+    element.style.maxWidth = 'none';
+    element.style.overflow = 'visible';
+    
+    return waitForImages(element).then(function() {
+        return html2canvas(element, {
+            scale: 3,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
+        });
+    }).then(function(canvas) {
+        element.style.maxWidth = originalMaxWidth;
+        element.style.overflow = originalOverflow;
+        return canvas;
+    });
+}
+
+// Helper: generate filename for downloads
+function getSlipFilename(ext) {
+    var voterNo = (currentVoterData && (currentVoterData.voter_no || currentVoterData.voterNo)) || currentVoterId;
+    return 'voter_slip_' + voterNo + '.' + ext;
 }
 
 // Download as PDF
-async function downloadAsPDF() {
-    const element = document.getElementById('voterSlipContent');
+function downloadAsPDF() {
+    var element = document.getElementById('voterSlipContent');
     
-    try {
-        // Temporarily expand the slip for full capture
-        const originalMaxWidth = element.style.maxWidth;
-        const originalOverflow = element.style.overflow;
-        element.style.maxWidth = 'none';
-        element.style.overflow = 'visible';
-        
-        // Ensure all images are loaded before capture
-        const images = element.querySelectorAll('img');
-        await Promise.all(Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve;
-            });
-        }));
-        
-        const canvas = await html2canvas(element, {
-            scale: 3,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            logging: false,
-            scrollX: 0,
-            scrollY: -window.scrollY,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
-        });
-        
-        // Restore original styles
-        element.style.maxWidth = originalMaxWidth;
-        element.style.overflow = originalOverflow;
-        
-        const { jsPDF } = window.jspdf;
-        
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
+    captureElement(element).then(function(canvas) {
+        var jsPDF = window.jspdf.jsPDF;
+        var imgData = canvas.toDataURL('image/png', 1.0);
+        var canvasWidth = canvas.width;
+        var canvasHeight = canvas.height;
         
         // Calculate PDF dimensions to fit content
-        const pdfWidth = 210; // A4 width in mm
-        const pdfHeight = 297; // A4 height in mm
-        const margin = 10;
-        const contentWidth = pdfWidth - (margin * 2);
-        const contentHeight = (canvasHeight * contentWidth) / canvasWidth;
+        var pdfWidth = 210; // A4 width in mm
+        var pdfHeight = 297; // A4 height in mm
+        var margin = 10;
+        var contentWidth = pdfWidth - (margin * 2);
+        var contentHeight = (canvasHeight * contentWidth) / canvasWidth;
         
         // If content fits on one page, center it vertically
         if (contentHeight <= (pdfHeight - margin * 2)) {
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const x = margin;
-            const y = (pdfHeight - contentHeight) / 2;
+            var pdf = new jsPDF('p', 'mm', 'a4');
+            var x = margin;
+            var y = (pdfHeight - contentHeight) / 2;
             pdf.addImage(imgData, 'PNG', x, y, contentWidth, contentHeight);
-            
-            const filename = currentVoterData ? 
-                `voter_slip_${currentVoterData.voter_no || currentVoterId}.pdf` : 
-                `voter_slip_${currentVoterId}.pdf`;
-            pdf.save(filename);
+            pdf.save(getSlipFilename('pdf'));
         } else {
             // Multi-page: split the canvas across pages
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pageContentHeight = pdfHeight - (margin * 2);
-            const totalPages = Math.ceil(contentHeight / pageContentHeight);
+            var pdf = new jsPDF('p', 'mm', 'a4');
+            var pageContentHeight = pdfHeight - (margin * 2);
+            var totalPages = Math.ceil(contentHeight / pageContentHeight);
             
-            for (let page = 0; page < totalPages; page++) {
+            for (var page = 0; page < totalPages; page++) {
                 if (page > 0) pdf.addPage();
                 
-                // Calculate source crop from canvas for this page
-                const srcY = (page * pageContentHeight * canvasWidth) / contentWidth;
-                const srcH = (pageContentHeight * canvasWidth) / contentWidth;
-                const actualSrcH = Math.min(srcH, canvasHeight - srcY);
+                var srcY = (page * pageContentHeight * canvasWidth) / contentWidth;
+                var srcH = (pageContentHeight * canvasWidth) / contentWidth;
+                var actualSrcH = Math.min(srcH, canvasHeight - srcY);
                 
-                // Create a temporary canvas for this page slice
-                const pageCanvas = document.createElement('canvas');
+                var pageCanvas = document.createElement('canvas');
                 pageCanvas.width = canvasWidth;
                 pageCanvas.height = actualSrcH;
-                const ctx = pageCanvas.getContext('2d');
+                var ctx = pageCanvas.getContext('2d');
                 ctx.drawImage(canvas, 0, srcY, canvasWidth, actualSrcH, 0, 0, canvasWidth, actualSrcH);
                 
-                const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
-                const pageImgHeight = (actualSrcH * contentWidth) / canvasWidth;
+                var pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+                var pageImgHeight = (actualSrcH * contentWidth) / canvasWidth;
                 
                 pdf.addImage(pageImgData, 'PNG', margin, margin, contentWidth, pageImgHeight);
             }
-            
-            const filename = currentVoterData ? 
-                `voter_slip_${currentVoterData.voter_no || currentVoterId}.pdf` : 
-                `voter_slip_${currentVoterId}.pdf`;
-            pdf.save(filename);
+            pdf.save(getSlipFilename('pdf'));
         }
-    } catch (error) {
+    }).catch(function(error) {
         console.error('Error generating PDF:', error);
         alert('Error generating PDF. Please try again.');
-    }
+    });
 }
 
 // Download as Image
-async function downloadAsImage() {
-    const element = document.getElementById('voterSlipContent');
+function downloadAsImage() {
+    var element = document.getElementById('voterSlipContent');
     
-    try {
-        // Temporarily expand the slip for full capture
-        const originalMaxWidth = element.style.maxWidth;
-        const originalOverflow = element.style.overflow;
-        element.style.maxWidth = 'none';
-        element.style.overflow = 'visible';
-        
-        // Ensure all images are loaded before capture
-        const images = element.querySelectorAll('img');
-        await Promise.all(Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve;
-            });
-        }));
-        
-        const canvas = await html2canvas(element, {
-            scale: 3,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            logging: false,
-            scrollX: 0,
-            scrollY: -window.scrollY,
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight
-        });
-        
-        // Restore original styles
-        element.style.maxWidth = originalMaxWidth;
-        element.style.overflow = originalOverflow;
-        
-        const link = document.createElement('a');
-        link.download = currentVoterData ? 
-            `voter_slip_${currentVoterData.voter_no || currentVoterId}.png` : 
-            `voter_slip_${currentVoterId}.png`;
+    captureElement(element).then(function(canvas) {
+        var link = document.createElement('a');
+        link.download = getSlipFilename('png');
         link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
-    } catch (error) {
+        
+        // Facebook in-app browser may block link.click(), use fallback
+        if (typeof link.click === 'function') {
+            link.click();
+        } else {
+            window.open(link.href, '_blank');
+        }
+    }).catch(function(error) {
         console.error('Error generating image:', error);
         alert('Error generating image. Please try again.');
-    }
+    });
 }
 
 // Dependent Category Dropdowns
-const API_URL = '{% url "public_search:api_categories" %}';
-const upazilaSelect = document.getElementById('upazilaSelect');
-const unionSelect = document.getElementById('unionSelect');
-const voterAreaSelect = document.getElementById('voterAreaSelect');
+var API_URL = '{% url "public_search:api_categories" %}';
+var upazilaSelect = document.getElementById('upazilaSelect');
+var unionSelect = document.getElementById('unionSelect');
+var voterAreaSelect = document.getElementById('voterAreaSelect');
 
-async function fetchCategories(parentId) {
-    try {
-        const response = await fetch(`${API_URL}?parent_id=${parentId}`);
-        const data = await response.json();
-        return data.categories || [];
-    } catch (error) {
-        console.error('Error fetching categories:', error);
-        return [];
-    }
+function fetchCategories(parentId) {
+    return fetch(API_URL + '?parent_id=' + parentId)
+        .then(function(response) { return response.json(); })
+        .then(function(data) { return data.categories || []; })
+        .catch(function(error) {
+            console.error('Error fetching categories:', error);
+            return [];
+        });
 }
 
 function populateDropdown(selectElement, categories, placeholder) {
-    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-    categories.forEach(cat => {
-        const option = document.createElement('option');
+    selectElement.innerHTML = '<option value="">' + placeholder + '</option>';
+    for (var i = 0; i < categories.length; i++) {
+        var cat = categories[i];
+        var option = document.createElement('option');
         option.value = cat.id;
-        option.textContent = cat.name + (cat.code ? ` (${cat.code})` : '');
+        option.textContent = cat.name + (cat.code ? ' (' + cat.code + ')' : '');
         selectElement.appendChild(option);
-    });
+    }
     selectElement.disabled = categories.length === 0;
 }
 
-function resetDropdowns(...selects) {
-    selects.filter(Boolean).forEach(select => {
-        select.innerHTML = '<option value="">-- Select --</option>';
-        select.disabled = true;
-    });
+function resetDropdowns() {
+    for (var i = 0; i < arguments.length; i++) {
+        var select = arguments[i];
+        if (select) {
+            select.innerHTML = '<option value="">-- Select --</option>';
+            select.disabled = true;
+        }
+    }
 }
 
-upazilaSelect.addEventListener('change', async function() {
-    const upazilaId = this.value;
+upazilaSelect.addEventListener('change', function() {
+    var upazilaId = this.value;
     resetDropdowns(unionSelect, voterAreaSelect);
     if (!upazilaId) return;
     
-    const unions = await fetchCategories(upazilaId);
-    populateDropdown(unionSelect, unions, 'সকল ইউনিয়ন');
+    fetchCategories(upazilaId).then(function(unions) {
+        populateDropdown(unionSelect, unions, 'সকল ইউনিয়ন');
+    });
 });
 
-unionSelect.addEventListener('change', async function() {
-    const unionId = this.value;
+unionSelect.addEventListener('change', function() {
+    var unionId = this.value;
     resetDropdowns(voterAreaSelect);
     if (!unionId) return;
     
     // Voter area dropdown is currently hidden from UI
     if (voterAreaSelect) {
-        const voterAreas = await fetchCategories(unionId);
-        populateDropdown(voterAreaSelect, voterAreas, 'সকল ভোটার এলাকা');
+        fetchCategories(unionId).then(function(voterAreas) {
+            populateDropdown(voterAreaSelect, voterAreas, 'সকল ভোটার এলাকা');
+        });
     }
 });
 
-// Auto Suggestion for Name Fields
-const SUGGESTIONS_API_URL = '{% url "public_search:api_suggestions" %}';
+// Auto Suggestion for Name Fields (ES5-compatible)
+var SUGGESTIONS_API_URL = '{% url "public_search:api_suggestions" %}';
 
-class AutoSuggest {
-    constructor(inputId, dropdownId) {
-        this.input = document.getElementById(inputId);
-        this.dropdown = document.getElementById(dropdownId);
-        this.field = this.input?.dataset.field || 'name';
-        this.debounceTimer = null;
-        this.selectedIndex = -1;
-        this.suggestions = [];
-        
-        if (this.input && this.dropdown) {
-            this.init();
-        }
-    }
+function AutoSuggest(inputId, dropdownId) {
+    this.input = document.getElementById(inputId);
+    this.dropdown = document.getElementById(dropdownId);
+    this.field = (this.input && this.input.getAttribute('data-field')) ? this.input.getAttribute('data-field') : 'name';
+    this.debounceTimer = null;
+    this.selectedIndex = -1;
+    this.suggestions = [];
     
-    init() {
-        this.input.addEventListener('input', () => {
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
-        });
-        
-        this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
-        
-        this.input.addEventListener('focus', () => {
-            if (this.input.value.trim().length >= 2 && this.suggestions.length > 0) {
-                this.showDropdown();
-            }
-        });
-        
-        this.input.addEventListener('blur', () => {
-            setTimeout(() => this.hideDropdown(), 150);
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
-                this.hideDropdown();
-            }
-        });
-    }
-    
-    async fetchSuggestions() {
-        const query = this.input.value.trim();
-        
-        if (query.length < 2) {
-            this.hideDropdown();
-            return;
-        }
-        
-        const upazila = document.getElementById('upazilaSelect')?.value || '';
-        const union = document.getElementById('unionSelect')?.value || '';
-        const voterArea = document.getElementById('voterAreaSelect')?.value || '';
-        
-        this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm text-primary"></span> <span class="ms-2">Searching...</span></div>';
-        this.showDropdown();
-        
-        try {
-            const params = new URLSearchParams({
-                q: query,
-                field: this.field,
-                upazila: upazila,
-                union: union,
-                voter_area: voterArea,
-                limit: 10
-            });
-            
-            const response = await fetch(`${SUGGESTIONS_API_URL}?${params}`);
-            const data = await response.json();
-            
-            this.suggestions = data.suggestions || [];
-            this.renderSuggestions(query);
-        } catch (error) {
-            console.error('Auto-suggest error:', error);
-            this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-exclamation-circle me-1"></i> Error loading suggestions</div>';
-        }
-    }
-    
-    renderSuggestions(query) {
-        this.selectedIndex = -1;
-        
-        if (this.suggestions.length === 0) {
-            this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-search me-1"></i> No suggestions found</div>';
-            return;
-        }
-        
-        const queryLower = query.toLowerCase();
-        const fieldIcon = this.getFieldIcon();
-        
-        this.dropdown.innerHTML = this.suggestions.map((item, index) => {
-            const text = item.text;
-            const highlighted = this.highlightMatch(text, queryLower);
-            return `<div class="autosuggest-item" data-index="${index}">
-                <i class="las ${fieldIcon}"></i>
-                <span>${highlighted}</span>
-            </div>`;
-        }).join('');
-        
-        this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, index) => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.selectSuggestion(index);
-            });
-            item.addEventListener('mouseenter', () => this.updateSelection(index));
-        });
-    }
-    
-    getFieldIcon() {
-        switch(this.field) {
-            case 'name': return 'la-user';
-            case 'father': return 'la-male';
-            case 'mother': return 'la-female';
-            case 'address': return 'la-map-marker';
-            default: return 'la-search';
-        }
-    }
-    
-    highlightMatch(text, query) {
-        if (!text || !query) return this.escapeHtml(text || '');
-        const escaped = this.escapeHtml(text);
-        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
-        return escaped.replace(regex, '<mark>$1</mark>');
-    }
-    
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    escapeRegex(str) {
-        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-    
-    handleKeydown(e) {
-        if (!this.dropdown.classList.contains('show')) return;
-        
-        const items = this.dropdown.querySelectorAll('.autosuggest-item');
-        
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
-                this.updateSelection(this.selectedIndex);
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
-                this.updateSelection(this.selectedIndex);
-                break;
-            case 'Enter':
-                if (this.selectedIndex >= 0 && this.suggestions[this.selectedIndex]) {
-                    e.preventDefault();
-                    this.selectSuggestion(this.selectedIndex);
-                }
-                break;
-            case 'Escape':
-                this.hideDropdown();
-                break;
-        }
-    }
-    
-    updateSelection(index) {
-        this.selectedIndex = index;
-        this.dropdown.querySelectorAll('.autosuggest-item').forEach((item, i) => {
-            item.classList.toggle('active', i === index);
-        });
-    }
-    
-    selectSuggestion(index) {
-        if (this.suggestions[index]) {
-            this.input.value = this.suggestions[index].text;
-            this.hideDropdown();
-            this.input.focus();
-        }
-    }
-    
-    showDropdown() {
-        this.dropdown.classList.add('show');
-    }
-    
-    hideDropdown() {
-        this.dropdown.classList.remove('show');
-        this.selectedIndex = -1;
+    if (this.input && this.dropdown) {
+        this._init();
     }
 }
+
+AutoSuggest.prototype._init = function() {
+    var self = this;
+    
+    this.input.addEventListener('input', function() {
+        clearTimeout(self.debounceTimer);
+        self.debounceTimer = setTimeout(function() { self._fetchSuggestions(); }, 250);
+    });
+    
+    this.input.addEventListener('keydown', function(e) { self._handleKeydown(e); });
+    
+    this.input.addEventListener('focus', function() {
+        if (self.input.value.trim().length >= 2 && self.suggestions.length > 0) {
+            self._showDropdown();
+        }
+    });
+    
+    this.input.addEventListener('blur', function() {
+        setTimeout(function() { self._hideDropdown(); }, 150);
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!self.input.contains(e.target) && !self.dropdown.contains(e.target)) {
+            self._hideDropdown();
+        }
+    });
+};
+
+AutoSuggest.prototype._fetchSuggestions = function() {
+    var self = this;
+    var query = this.input.value.trim();
+    
+    if (query.length < 2) {
+        this._hideDropdown();
+        return;
+    }
+    
+    var upazilaEl = document.getElementById('upazilaSelect');
+    var unionEl = document.getElementById('unionSelect');
+    var voterAreaEl = document.getElementById('voterAreaSelect');
+    var upazila = upazilaEl ? upazilaEl.value : '';
+    var union = unionEl ? unionEl.value : '';
+    var voterArea = voterAreaEl ? voterAreaEl.value : '';
+    
+    this.dropdown.innerHTML = '<div class="autosuggest-loading"><span class="spinner-border spinner-border-sm text-primary"></span> <span class="ms-2">Searching...</span></div>';
+    this._showDropdown();
+    
+    var params = 'q=' + encodeURIComponent(query) +
+        '&field=' + encodeURIComponent(this.field) +
+        '&upazila=' + encodeURIComponent(upazila) +
+        '&union=' + encodeURIComponent(union) +
+        '&voter_area=' + encodeURIComponent(voterArea) +
+        '&limit=10';
+    
+    fetch(SUGGESTIONS_API_URL + '?' + params)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            self.suggestions = data.suggestions || [];
+            self._renderSuggestions(query);
+        })
+        .catch(function(error) {
+            console.error('Auto-suggest error:', error);
+            self.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-exclamation-circle me-1"></i> Error loading suggestions</div>';
+        });
+};
+
+AutoSuggest.prototype._renderSuggestions = function(query) {
+    var self = this;
+    this.selectedIndex = -1;
+    
+    if (this.suggestions.length === 0) {
+        this.dropdown.innerHTML = '<div class="autosuggest-empty"><i class="las la-search me-1"></i> No suggestions found</div>';
+        return;
+    }
+    
+    var queryLower = query.toLowerCase();
+    var fieldIcon = this._getFieldIcon();
+    var html = '';
+    
+    for (var i = 0; i < this.suggestions.length; i++) {
+        var text = this.suggestions[i].text;
+        var highlighted = this._highlightMatch(text, queryLower);
+        html += '<div class="autosuggest-item" data-index="' + i + '">' +
+            '<i class="las ' + fieldIcon + '"></i>' +
+            '<span>' + highlighted + '</span>' +
+            '</div>';
+    }
+    
+    this.dropdown.innerHTML = html;
+    
+    var items = this.dropdown.querySelectorAll('.autosuggest-item');
+    for (var j = 0; j < items.length; j++) {
+        (function(index) {
+            items[index].addEventListener('click', function(e) {
+                e.preventDefault();
+                self._selectSuggestion(index);
+            });
+            items[index].addEventListener('mouseenter', function() {
+                self._updateSelection(index);
+            });
+        })(j);
+    }
+};
+
+AutoSuggest.prototype._getFieldIcon = function() {
+    switch(this.field) {
+        case 'name': return 'la-user';
+        case 'father': return 'la-male';
+        case 'mother': return 'la-female';
+        case 'address': return 'la-map-marker';
+        default: return 'la-search';
+    }
+};
+
+AutoSuggest.prototype._highlightMatch = function(text, query) {
+    if (!text || !query) return this._escapeHtml(text || '');
+    var escaped = this._escapeHtml(text);
+    var regex = new RegExp('(' + this._escapeRegex(query) + ')', 'gi');
+    return escaped.replace(regex, '<mark>$1</mark>');
+};
+
+AutoSuggest.prototype._escapeHtml = function(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+};
+
+AutoSuggest.prototype._escapeRegex = function(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+AutoSuggest.prototype._handleKeydown = function(e) {
+    if (!this.dropdown.classList.contains('show')) return;
+    
+    var items = this.dropdown.querySelectorAll('.autosuggest-item');
+    // Use e.key with e.keyCode fallback for old browsers
+    var key = e.key || e.keyCode;
+    
+    if (key === 'ArrowDown' || key === 40) {
+        e.preventDefault();
+        this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
+        this._updateSelection(this.selectedIndex);
+    } else if (key === 'ArrowUp' || key === 38) {
+        e.preventDefault();
+        this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+        this._updateSelection(this.selectedIndex);
+    } else if (key === 'Enter' || key === 13) {
+        if (this.selectedIndex >= 0 && this.suggestions[this.selectedIndex]) {
+            e.preventDefault();
+            this._selectSuggestion(this.selectedIndex);
+        }
+    } else if (key === 'Escape' || key === 27) {
+        this._hideDropdown();
+    }
+};
+
+AutoSuggest.prototype._updateSelection = function(index) {
+    this.selectedIndex = index;
+    var items = this.dropdown.querySelectorAll('.autosuggest-item');
+    for (var i = 0; i < items.length; i++) {
+        if (i === index) {
+            items[i].classList.add('active');
+        } else {
+            items[i].classList.remove('active');
+        }
+    }
+};
+
+AutoSuggest.prototype._selectSuggestion = function(index) {
+    if (this.suggestions[index]) {
+        this.input.value = this.suggestions[index].text;
+        this._hideDropdown();
+        this.input.focus();
+    }
+};
+
+AutoSuggest.prototype._showDropdown = function() {
+    this.dropdown.classList.add('show');
+};
+
+AutoSuggest.prototype._hideDropdown = function() {
+    this.dropdown.classList.remove('show');
+    this.selectedIndex = -1;
+};
 
 // Initialize auto-suggest
 new AutoSuggest('nameInput', 'nameDropdown');
