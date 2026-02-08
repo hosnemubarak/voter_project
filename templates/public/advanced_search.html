@@ -129,7 +129,7 @@
                 
                 <!-- Advanced Search Toggle -->
                 <div class="mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="advancedSearchToggle" onclick="toggleAdvancedSearch()">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="advancedSearchToggle" onclick="toggleAdvancedSearch()">
                         <i class="las la-search-plus me-1"></i> বিস্তারিত সার্চ
                     </button>
                 </div>
@@ -556,13 +556,13 @@ function toggleAdvancedSearch() {
     if (fields.style.display === 'none') {
         fields.style.display = 'block';
         btn.innerHTML = '<i class="las la-search-minus me-1"></i> বিস্তারিত সার্চ বন্ধ করুন';
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-outline-danger');
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-primary');
     } else {
         fields.style.display = 'none';
         btn.innerHTML = '<i class="las la-search-plus me-1"></i> বিস্তারিত সার্চ';
-        btn.classList.remove('btn-outline-danger');
-        btn.classList.add('btn-outline-secondary');
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
     }
 }
 
