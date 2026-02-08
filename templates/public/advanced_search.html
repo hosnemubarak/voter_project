@@ -218,7 +218,7 @@
                     {% for voter in page_obj %}
                     <tr>
                         <td><code class="bg-primary-subtle text-primary px-2 py-1 rounded fw-bold">{{ voter.serial|default:"-" }}</code></td>
-                        <td><strong class="text-dark">{{ voter.name|default:"-" }}</strong></td>
+                        <td><button type="button" class="btn btn-link p-0 text-start text-dark fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#voterModal" onclick="showVoterDetail({{ voter.pk }}, '{{ voter.serial|default:"-"|escapejs }}', '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}')">{{ voter.name|default:"-" }}</button></td>
                         <td><code class="bg-light px-2 py-1 rounded">{{ voter.voter_no|default:"-" }}</code></td>
                         <td>
                             {% if voter.gender == 'male' %}
@@ -257,7 +257,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <div class="d-flex align-items-center gap-1" style="min-width:0;">
                         <code class="bg-primary-subtle text-primary px-1 rounded fw-bold" style="font-size:11px;">{{ voter.serial|default:"-" }}</code>
-                        <strong class="text-dark text-truncate" style="font-size:14px;">{{ voter.name|default:"-" }}</strong>
+                        <button type="button" class="btn btn-link p-0 text-start text-dark fw-bold text-decoration-none text-truncate" style="font-size:14px;" data-bs-toggle="modal" data-bs-target="#voterModal" onclick="showVoterDetail({{ voter.pk }}, '{{ voter.serial|default:"-"|escapejs }}', '{{ voter.name|default:"-"|escapejs }}', '{{ voter.voter_no|default:"-"|escapejs }}', '{{ voter.gender }}', '{{ voter.father|default:"-"|escapejs }}', '{{ voter.mother|default:"-"|escapejs }}', '{{ voter.dob|default:"-"|escapejs }}', '{{ voter.address|default:"-"|escapejs }}', '{{ voter.category.full_path|default:"-"|escapejs }}')">{{ voter.name|default:"-" }}</button>
                     </div>
                     <div class="d-flex align-items-center gap-1 flex-shrink-0">
                         {% if voter.gender == 'male' %}
